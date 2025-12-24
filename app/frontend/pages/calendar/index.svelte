@@ -77,3 +77,31 @@
 
   // Reactive grid for the current display month
   let grid = $state(buildGrid(displayYear, displayMonth))
+
+  function prevMonth() {
+    if (displayMonth === 0) {
+      displayMonth = 11
+      displayYear -= 1
+    } else {
+      displayMonth -= 1
+    }
+    grid = buildGrid(displayYear, displayMonth)
+  }
+
+  function nextMonth() {
+    if (displayMonth === 11) {
+      displayMonth = 0
+      displayYear += 1
+    } else {
+      displayMonth += 1
+    }
+    grid = buildGrid(displayYear, displayMonth)
+  }
+
+  function goToToday() {
+    const now = new Date()
+    displayYear = now.getFullYear()
+    displayMonth = now.getMonth()
+    grid = buildGrid(displayYear, displayMonth)
+    selectedISO = `${displayYear}-${String(displayMonth + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
+  }
