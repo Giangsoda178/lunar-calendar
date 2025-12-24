@@ -105,3 +105,98 @@
     grid = buildGrid(displayYear, displayMonth)
     selectedISO = `${displayYear}-${String(displayMonth + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`
   }
+<svelte:head>
+  <title>Lunar Calendar</title>
+</svelte:head>
+
+<CalendarLayout>
+  <div class="flex min-w-0 flex-col gap-6">
+    <h2 class="text-3xl font-bold">Lunar Calendar</h2>
+
+    <main class="main-content">
+      <h1 class="month-title">{monthNames[displayMonth]} {displayYear}</h1>
+
+      <div class="calendar-btns">
+        <button
+          class="btn left-btn"
+          onclick={prevMonth}
+          aria-label="Previous month"
+        >
+          <ChevronLeft />
+        </button>
+        <button class="btn today-btn" onclick={goToToday} aria-pressed="false"
+          >Today</button
+        >
+        <button
+          class="btn right-btn"
+          onclick={nextMonth}
+          aria-label="Next month"
+        >
+          <ChevronRight />
+        </button>
+      </div>
+
+      <div class="calendar-table-wrapper">
+        <table
+          class="calendar-table"
+          role="grid"
+          aria-label={monthNames[displayMonth] +
+            " " +
+            displayYear +
+            " calendar"}
+        >
+          <colgroup>
+            {#each weekdayNames as wd, i}
+              <col />
+            {/each}
+          </colgroup>
+          <thead>
+            <tr>
+              {#each weekdayNames as wd}
+                <th scope="col">{wd}</th>
+              {/each}
+            </tr>
+          </thead>
+          <tbody>
+            {#each grid as row}
+              <tr>
+                {#each row as cell}
+                  {#if cell.date}
+                    <td
+                      class="day"
+                      class:today={cell.iso === todayISO}
+                      class:selected={cell.iso === selectedISO}
+                      role="gridcell"
+                      aria-label={String(cell.iso)}
+                      aria-current={cell.iso === todayISO ? "date" : undefined}
+                      aria-selected={cell.iso === selectedISO
+                        ? "true"
+                        : undefined}
+                      onkeydown={(e) => {
+                        if (e.key === "Enter" || e.key === " ")
+                          selectCell(cell.iso)
+                      }}
+                      onclick={() => {
+                        selectCell(cell.iso)
+                      }}
+                    >
+                      <div class="cell-inner">
+                        <div class="solar-date">
+                          {formatShortDate(cell.date)}
+                        </div>
+                        <div class="lunar-date">15</div>
+                        <div class="slots"></div>
+                      </div>
+                    </td>
+                  {:else}
+                    <td class="blank" role="gridcell" aria-hidden="true"></td>
+                  {/if}
+                {/each}
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</CalendarLayout>
