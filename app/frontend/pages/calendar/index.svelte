@@ -220,7 +220,13 @@
                         <div class="solar-date">
                           {formatShortDate(cell.date)}
                         </div>
-                        <div class="lunar-date">{cell.lunarDisplay ?? ""}</div>
+                        <div
+                          class="lunar-date"
+                          class:first-day={cell.lunarDisplay?.startsWith("01/")}
+                          class:mid-day={cell.lunarDisplay?.startsWith("15/")}
+                        >
+                          {cell.lunarDisplay ?? ""}
+                        </div>
                         <div class="slots"></div>
                       </div>
                     </td>
@@ -303,11 +309,18 @@
     .solar-date {
       font-size: 2rem;
       font-weight: 600;
+      margin-bottom: 0.5rem;
     }
 
     .lunar-date {
       font-size: 1.2rem;
       margin-left: 4rem;
+
+      &.first-day,
+      &.mid-day {
+        font-weight: 600;
+        color: var(--color-destructive);
+      }
     }
   }
 </style>
