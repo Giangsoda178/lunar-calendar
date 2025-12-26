@@ -91,6 +91,23 @@
     return `${monthNames[monthIndex]} ${year}`
   })
 
+  let selectedLunarCanChi = $derived.by(() => {
+    if (!selectedISO) return null
+
+    const d = isoToDate(selectedISO)
+    const lunar = LunarCalendar.fromSolar(
+      d.getDate(),
+      d.getMonth() + 1,
+      d.getFullYear(),
+    )
+
+    const dayCanChi = lunar.dayCanChi
+    const monthCanChi = lunar.monthCanChi
+    const yearCanChi = lunar.yearCanChi
+
+    return `Ngày ${dayCanChi} - Tháng ${monthCanChi} - Năm ${yearCanChi}`
+  })
+
   function formatShortDate(d: Date) {
     return `${String(d.getDate()).padStart(2, "0")}`
   }
@@ -322,7 +339,7 @@
             {/each}
           </tbody>
         </table>
-        <div class="date-info-wrapper">
+        <div class="date-info-container">
           <button
             class="btn left-btn"
             onclick={prevDay}
@@ -330,15 +347,18 @@
           >
             <ChevronLeft />
           </button>
-          <div class="date-info">
-            <span class="type">Solar</span>
-            <span class="date">{selectedSolarDate ?? ""}</span>
-            <span class="month-year">{selectedSolarMonthYear ?? ""}</span>
-          </div>
-          <div class="date-info">
-            <span class="type">Lunar</span>
-            <span class="date">{selectedLunarDate ?? ""}</span>
-            <span class="month-year">{selectedLunarMonthYear ?? ""}</span>
+          <div class="date-info-wrapper">
+            <div class="date-info">
+              <span class="type">Solar</span>
+              <span class="date">{selectedSolarDate ?? ""}</span>
+              <span class="month-year">{selectedSolarMonthYear ?? ""}</span>
+            </div>
+            <div class="date-info">
+              <span class="type">Lunar</span>
+              <span class="date">{selectedLunarDate ?? ""}</span>
+              <span class="month-year">{selectedLunarMonthYear ?? ""}</span>
+              <span class="canchi">{selectedLunarCanChi ?? ""}</span>
+            </div>
           </div>
           <button class="btn right-btn" onclick={nextDay} aria-label="Next day">
             <ChevronRight />
@@ -434,31 +454,41 @@
     background-color: var(--color-accent);
   }
 
-  .date-info-wrapper {
+  .date-info-container {
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 8rem;
     margin: 2rem auto;
 
-    .date-info {
+    .date-info-wrapper {
       display: flex;
-      flex-direction: column;
-      align-items: center;
+      gap: 6rem;
 
-      .type {
-        font-size: 2rem;
-        font-weight: 500;
-      }
+      .date-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
 
-      .date {
-        font-size: 5rem;
-        font-weight: 700;
-      }
+        .type {
+          font-size: 2rem;
+          font-weight: 500;
+        }
 
-      .month-year {
-        font-size: 2rem;
-        font-weight: 500;
+        .date {
+          font-size: 5rem;
+          font-weight: 700;
+        }
+
+        .month-year {
+          font-size: 2rem;
+          font-weight: 500;
+        }
+
+        .canchi {
+          font-size: 1.2rem;
+          margin-top: 1rem;
+        }
       }
     }
   }
