@@ -4,11 +4,14 @@
 #
 # Table name: users
 #
-#  id              :integer          not null, primary key
-#  email           :string           not null
-#  name            :string           not null
-#  password_digest :string           not null
-#  verified        :boolean          default(FALSE), not null
+#  id              :string           not null, primary key
+#  first_name      :string           not null
+#  last_name       :string
+#  email           :string
+#  password_digest :string
+#  two_fa_enabled  :boolean
+#  two_fa_secret   :string
+#  role            :string           default("user"), not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #
@@ -18,9 +21,13 @@
 #
 FactoryBot.define do
   factory :user do
+    id { SecureRandom.uuid }
     sequence(:email) { |n| "user#{n}@example.com" }
-    name { "Test User" }
+    first_name { "Test" }
+    last_name { "User" }
     password { "Secret1*3*5*" }
-    verified { true }
+    two_fa_enabled { false }
+    two_fa_secret { nil }
+    role { "user" }
   end
 end
