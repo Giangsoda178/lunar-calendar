@@ -13,6 +13,9 @@ gem "puma", ">= 5.0"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
 
+# Add Ruby nanoid gem so `require "nanoid"` works in Ruby code
+gem "nanoid"
+
 # Pretty print Ruby objects with proper indentation and colors [https://github.com/amazing-print/amazing_print]
 gem "amazing_print"
 
