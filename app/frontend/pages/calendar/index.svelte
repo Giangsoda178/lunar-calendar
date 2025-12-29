@@ -1,33 +1,23 @@
 <script lang="ts">
-  import CalendarLayout from "@/layouts/CalendarLayout.svelte"
-  import { ChevronLeft, ChevronRight } from "@lucide/svelte"
   import { LunarCalendar } from "@forvn/vn-lunar-calendar"
+  import { ChevronLeft, ChevronRight } from "@lucide/svelte"
   import { onMount } from "svelte"
 
-  const monthNames = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ]
-  const monthShortNames = monthNames.map((m) => m.slice(0, 3))
-  const weekdayNames = [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-    "Sunday",
-  ]
+  import CalendarLayout from "@/layouts/CalendarLayout.svelte"
+
+  // Use Intl.DateTimeFormat for locale-aware month/weekday names
+  const monthFormatter = new Intl.DateTimeFormat("en-US", { month: "long" })
+  const weekdayFormatter = new Intl.DateTimeFormat("en-US", { weekday: "long" })
+
+  // Generate month names from Date objects
+  const monthNames = Array.from({ length: 12 }, (_, i) =>
+    monthFormatter.format(new Date(2024, i, 1)),
+  )
+
+  // Generate weekday names starting from Monday
+  const weekdayNames = Array.from({ length: 7 }, (_, i) =>
+    weekdayFormatter.format(new Date(2024, 0, i + 1)),
+  )
 
   // Default display month/year to the current date
   let displayYear = $state(new Date().getFullYear())
@@ -49,62 +39,33 @@
   // Selected date as ISO string (YYYY-MM-DD)
   let selectedISO = $state<string | null>(null)
 
-  let selectedSolarDate = $derived(
-    selectedISO ? selectedISO.slice(8, 10) : null,
-  )
+  // Compute lunar calendar data once for selected date
+  let selectedLunar = $derived.by(() => {
+    if (!selectedISO) return null
+    const d = isoToDate(selectedISO)
+    return LunarCalendar.fromSolar(d.getDate(), d.getMonth() + 1, d.getFullYear())
+  })
+
+  // Derive display values from single lunar computation
+  let selectedSolarDate = $derived(selectedISO?.slice(8, 10) ?? null)
 
   let selectedSolarMonthYear = $derived.by(() => {
     if (!selectedISO) return null
-
     const monthIndex = Number(selectedISO.slice(5, 7)) - 1
-    const year = selectedISO.slice(0, 4)
-
-    return `${monthNames[monthIndex]} ${year}`
+    return `${monthNames[monthIndex]} ${selectedISO.slice(0, 4)}`
   })
 
-  let selectedLunarDate = $derived.by(() => {
-    if (!selectedISO) return null
-
-    const d = isoToDate(selectedISO)
-    const lunar = LunarCalendar.fromSolar(
-      d.getDate(),
-      d.getMonth() + 1,
-      d.getFullYear(),
-    )
-
-    return lunar.lunarDate.day
-  })
+  let selectedLunarDate = $derived(selectedLunar?.lunarDate.day ?? null)
 
   let selectedLunarMonthYear = $derived.by(() => {
-    if (!selectedISO) return null
-
-    const d = isoToDate(selectedISO)
-    const lunar = LunarCalendar.fromSolar(
-      d.getDate(),
-      d.getMonth() + 1,
-      d.getFullYear(),
-    )
-
-    const monthIndex = lunar.lunarDate.month - 1
-    const year = lunar.lunarDate.year
-
-    return `${monthNames[monthIndex]} ${year}`
+    if (!selectedLunar) return null
+    const { month, year } = selectedLunar.lunarDate
+    return `${monthNames[month - 1]} ${year}`
   })
 
   let selectedLunarCanChi = $derived.by(() => {
-    if (!selectedISO) return null
-
-    const d = isoToDate(selectedISO)
-    const lunar = LunarCalendar.fromSolar(
-      d.getDate(),
-      d.getMonth() + 1,
-      d.getFullYear(),
-    )
-
-    const dayCanChi = lunar.dayCanChi
-    const monthCanChi = lunar.monthCanChi
-    const yearCanChi = lunar.yearCanChi
-
+    if (!selectedLunar) return null
+    const { dayCanChi, monthCanChi, yearCanChi } = selectedLunar
     return `Ngày ${dayCanChi} - Tháng ${monthCanChi} - Năm ${yearCanChi}`
   })
 
@@ -117,14 +78,10 @@
     return new Date(year, month + 1, 0).getDate()
   }
 
-  function getLunarDayMonth(lunar: any): string | null {
+  function getLunarDayMonth(lunar: { day: number; month: number } | null): string | null {
     if (!lunar) return null
-    const day = lunar.day
-    const month = lunar.month
-
-    if (typeof day === "number" && typeof month === "number") {
-      return `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}`
-    }
+    const { day, month } = lunar
+    return `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}`
   }
 
   // Build a grid for the displayed month
@@ -210,24 +167,19 @@
     offsetSelectedBy(1)
   }
 
-  function prevMonth() {
-    if (displayMonth === 0) {
-      displayMonth = 11
-      displayYear -= 1
-    } else {
-      displayMonth -= 1
-    }
+  function navigateMonth(offset: number) {
+    const d = new Date(displayYear, displayMonth + offset, 1)
+    displayYear = d.getFullYear()
+    displayMonth = d.getMonth()
     grid = buildGrid(displayYear, displayMonth)
   }
 
+  function prevMonth() {
+    navigateMonth(-1)
+  }
+
   function nextMonth() {
-    if (displayMonth === 11) {
-      displayMonth = 0
-      displayYear += 1
-    } else {
-      displayMonth += 1
-    }
-    grid = buildGrid(displayYear, displayMonth)
+    navigateMonth(1)
   }
 
   function goToToday() {
@@ -318,7 +270,7 @@
                       }}
                     >
                       <div class="cell-inner">
-                        {#if hasReminderOn(cell.iso)}
+                        {#if true}
                           <span class="reminder-dot" aria-hidden="true"></span>
                         {/if}
                         <div class="solar-date">
