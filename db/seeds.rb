@@ -34,29 +34,34 @@ puts "  - User: ", leo.email
 
 puts "Seeding reminders..."
 
-# Non-lunar reminder for Leo
-reminder1 = Reminder.find_or_initialize_by(title: "Doctor Appointment", user_id: leo.id)
-reminder1.assign_attributes(
-  notes: "Bring ID and insurance card",
-  is_lunar: false,
-  start: Time.current.change(hour: 14, min: 0, sec: 0),
-  "end" => Time.current.change(hour: 15, min: 0, sec: 0),
-  alert_minutes: 30
-)
-reminder1.save!
-puts "  - Reminder for #{leo.email}: #{reminder1.title} (#{reminder1.start})"
+au_zone = "Australia/Sydney"
+puts "  - Creating time fields using timezone: #{au_zone}"
 
-# Lunar reminder for Admin
-lunar_start = Time.current + 3.days
-reminder2 = Reminder.find_or_initialize_by(title: "Lunar Festival", user_id: admin.id)
-reminder2.assign_attributes(
-  notes: "Lunar-based festival reminder",
-  is_lunar: true,
-  start: lunar_start,
-  "end" => lunar_start + 2.hours,
-  alert_minutes: 60
-)
-reminder2.save!
-puts "  - Lunar reminder for #{admin.email}: #{reminder2.title} (#{reminder2.start})"
+Time.use_zone(au_zone) do
+  # Non-lunar reminder for Leo (local AU times)
+  reminder1 = Reminder.find_or_initialize_by(title: "Doctor Appointment", user_id: leo.id)
+  reminder1.assign_attributes(
+    notes: "Bring ID and insurance card",
+    is_lunar: false,
+    start: Time.current.change(hour: 14, min: 0, sec: 0),
+    "end" => Time.current.change(hour: 15, min: 0, sec: 0),
+    alert_minutes: 30
+  )
+  reminder1.save!
+  puts "  - Reminder for #{leo.email}: #{reminder1.title} (#{reminder1.start} #{Time.zone})"
+
+  # Lunar reminder for Admin (local AU times)
+  lunar_start = Time.current + 3.days
+  reminder2 = Reminder.find_or_initialize_by(title: "Lunar Festival", user_id: admin.id)
+  reminder2.assign_attributes(
+    notes: "Lunar-based festival reminder",
+    is_lunar: true,
+    start: lunar_start,
+    "end" => lunar_start + 2.hours,
+    alert_minutes: 60
+  )
+  reminder2.save!
+  puts "  - Lunar reminder for #{admin.email}: #{reminder2.title} (#{reminder2.start} #{Time.zone})"
+end
 
 puts "Seeding complete."
