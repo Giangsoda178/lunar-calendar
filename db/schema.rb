@@ -29,7 +29,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_28_232401) do
 
   create_table "users", id: :string, force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.string "email"
+    t.string "email", null: false
     t.string "first_name", null: false
     t.string "last_name"
     t.string "password_digest"
@@ -37,6 +37,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_12_28_232401) do
     t.boolean "two_fa_enabled"
     t.string "two_fa_secret"
     t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_users_on_email", unique: true
   end
 
   add_foreign_key "reminders", "users"
