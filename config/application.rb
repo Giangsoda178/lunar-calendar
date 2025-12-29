@@ -35,7 +35,7 @@ module MoonCalendar
     # These settings can be overridden in specific environments using the files
     # in config/environments, which are processed later.
     #
-    # config.time_zone = "Central Time (US & Canada)"
+    config.time_zone = "Australia/Hobart"
     config.autoload_paths << Rails.root.join("app/forms")
 
     # Look for mailer previews in app/mailers/previews
