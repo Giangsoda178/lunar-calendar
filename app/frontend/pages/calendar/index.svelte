@@ -318,6 +318,9 @@
                       }}
                     >
                       <div class="cell-inner">
+                        {#if hasReminderOn(cell.iso)}
+                          <span class="reminder-dot" aria-hidden="true"></span>
+                        {/if}
                         <div class="solar-date">
                           {formatShortDate(cell.date)}
                         </div>
@@ -417,6 +420,7 @@
   }
 
   .cell-inner {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -447,6 +451,18 @@
         font-weight: 700;
         color: var(--color-destructive);
       }
+    }
+
+    .reminder-dot {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 10px;
+      height: 10px;
+      border-radius: 10px;
+      background-color: var(--color-destructive);
+      box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.04);
+      pointer-events: none;
     }
   }
 
