@@ -26,4 +26,9 @@
 #  user_id  (user_id => users.id)
 #
 class Reminder < ApplicationRecord
+  belongs_to :user
+
+  validates :title, presence: true
+  validates :start, presence: true
+  validates :is_lunar, inclusion: {in: [true, false]}
 end
