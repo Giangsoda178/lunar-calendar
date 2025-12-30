@@ -10,18 +10,21 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_12_28_232401) do
+ActiveRecord::Schema[8.1].define(version: 2025_12_30_132048) do
   create_table "reminders", force: :cascade do |t|
     t.integer "alert_minutes"
     t.datetime "created_at", null: false
     t.datetime "end"
     t.boolean "is_lunar", default: false, null: false
     t.string "notes"
+    t.boolean "repeat", default: false, null: false
+    t.integer "repeat_period"
     t.datetime "start", null: false
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.string "user_id", null: false
     t.index ["is_lunar"], name: "index_reminders_on_is_lunar"
+    t.index ["repeat_period"], name: "index_reminders_on_repeat_period"
     t.index ["start"], name: "index_reminders_on_start"
     t.index ["user_id"], name: "index_reminders_on_user_id"
     t.check_constraint "end IS NULL OR end >= start", name: "chk_reminders_end_after_start"
