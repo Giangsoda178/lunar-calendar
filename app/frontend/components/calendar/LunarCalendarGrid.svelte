@@ -51,7 +51,8 @@
 
   function selectCell(iso: string | null) {
     if (!iso) return
-    onSelect(iso === selectedDate ? null : iso)
+    if (iso === selectedDate) return
+    onSelect(iso)
   }
 </script>
 
@@ -233,6 +234,11 @@
   }
 
   .calendar-table .day.today .cell-inner {
+    background-color: var(--color-accent);
+  }
+
+  .calendar-table .day.selected .cell-inner {
+    border: 1px solid var(--color-primary);
     background-color: var(--color-accent);
   }
 </style>
