@@ -2,9 +2,9 @@
   import { onMount } from "svelte"
   import { SvelteSet } from "svelte/reactivity"
 
-  import DateInfoPanel from "@/components/calendar/DateInfoPanel.svelte"
-  import LunarCalendarGrid from "@/components/calendar/LunarCalendarGrid.svelte"
   import CalendarLayout from "@/layouts/CalendarLayout.svelte"
+  import LunarCalendarGrid from "@/components/calendar/LunarCalendarGrid.svelte"
+  import DateInfoPanel from "@/components/calendar/DateInfoPanel.svelte"
   import { dateToISO, isoToDate } from "@/utils"
 
   interface Props {
@@ -29,7 +29,11 @@
 
   function offsetSelectedBy(days: number) {
     const base = selectedISO ? isoToDate(selectedISO) : isoToDate(today)
-    const newDate = new Date(base.getFullYear(), base.getMonth(), base.getDate() + days)
+    const newDate = new Date(
+      base.getFullYear(),
+      base.getMonth(),
+      base.getDate() + days,
+    )
     selectedISO = dateToISO(newDate)
   }
 

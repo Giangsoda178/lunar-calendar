@@ -16,7 +16,8 @@
     reminderDatesSet?: Set<string>
   }
 
-  let { initialDate, selectedDate, onSelect, reminderDatesSet }: Props = $props()
+  let { initialDate, selectedDate, onSelect, reminderDatesSet }: Props =
+    $props()
 
   // Internal navigation state
   let displayYear = $state((initialDate ?? new Date()).getFullYear())
@@ -45,7 +46,7 @@
     displayYear = initialDate.getFullYear()
     displayMonth = initialDate.getMonth()
     grid = buildCalendarGrid(displayYear, displayMonth)
-    onSelect(dateToISO(initialDate))
+    onSelect(dateToISO(initialDate as Date))
   }
 
   function selectCell(iso: string | null) {
@@ -58,7 +59,11 @@
 
 <div class="calendar-table-wrapper">
   <div class="calendar-btns">
-    <button class="btn left-btn" onclick={prevMonth} aria-label="Previous month">
+    <button
+      class="btn left-btn"
+      onclick={prevMonth}
+      aria-label="Previous month"
+    >
       <ChevronLeft />
     </button>
     <button class="btn today-btn" onclick={goToToday} aria-pressed="false">

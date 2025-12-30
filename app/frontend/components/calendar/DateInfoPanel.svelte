@@ -16,10 +16,14 @@
   let selectedLunar = $derived.by(() => {
     if (!selectedISO) return null
     const d = isoToDate(selectedISO)
-    return LunarCalendar.fromSolar(d.getDate(), d.getMonth() + 1, d.getFullYear())
+    return LunarCalendar.fromSolar(
+      d.getDate(),
+      d.getMonth() + 1,
+      d.getFullYear(),
+    )
   })
 
-  // Derive display values from single lunar computation
+  // Derive display values from single solar computation
   let selectedSolarDate = $derived(selectedISO?.slice(8, 10) ?? null)
 
   let selectedSolarMonthYear = $derived.by(() => {
