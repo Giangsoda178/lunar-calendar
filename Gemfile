@@ -56,7 +56,7 @@ gem "authentication-zero"
 gem "js-routes"
 
 # Agnostic pagination in plain Ruby - https://ddnexus.github.io/pagy/
-gem "pagy", "~> 43.2.1"
+gem "pagy", "~> 43.2.2"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
