@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1767051582203" clover="3.2.0">
+  <project timestamp="1767051582203" name="All files">
+    <metrics statements="35" coveredstatements="8" conditionals="4" coveredconditionals="0" methods="8" coveredmethods="3" elements="47" coveredelements="11" complexity="0" loc="35" ncloc="35" packages="1" files="1" classes="1"/>
+    <file name="lunar-calendar.ts" path="/Users/giangsoda/Documents/GitHub/calendar/app/frontend/utils/lunar-calendar.ts">
+      <metrics statements="35" coveredstatements="8" conditionals="4" coveredconditionals="0" methods="8" coveredmethods="3"/>
+      <line num="23" count="1" type="stmt"/>
+      <line num="24" count="1" type="stmt"/>
+      <line num="31" count="1" type="stmt"/>
+      <line num="32" count="12" type="stmt"/>
+      <line num="40" count="1" type="stmt"/>
+      <line num="41" count="7" type="stmt"/>
+      <line num="80" count="0" type="stmt"/>
+      <line num="94" count="3" type="stmt"/>
+      <line num="95" count="3" type="stmt"/>
+      <line num="112" count="0" type="stmt"/>
+      <line num="126" count="0" type="stmt"/>
+      <line num="144" count="0" type="cond" truecount="0" falsecount="2"/>
+      <line num="145" count="0" type="stmt"/>
+      <line num="146" count="0" type="stmt"/>
+      <line num="187" count="0" type="stmt"/>
+      <line num="188" count="0" type="stmt"/>
+      <line num="191" count="0" type="stmt"/>
+      <line num="193" count="0" type="stmt"/>
+      <line num="197" count="0" type="stmt"/>
+      <line num="198" count="0" type="stmt"/>
+      <line num="202" count="0" type="stmt"/>
+      <line num="203" count="0" type="stmt"/>
+      <line num="204" count="0" type="stmt"/>
+      <line num="206" count="0" type="stmt"/>
+      <line num="207" count="0" type="stmt"/>
+      <line num="208" count="0" type="stmt"/>
+      <line num="213" count="0" type="stmt"/>
+      <line num="214" count="0" type="cond" truecount="0" falsecount="2"/>
+      <line num="217" count="0" type="stmt"/>
+      <line num="218" count="0" type="stmt"/>
+      <line num="222" count="0" type="stmt"/>
+      <line num="223" count="0" type="stmt"/>
+      <line num="224" count="0" type="stmt"/>
+      <line num="225" count="0" type="stmt"/>
+      <line num="227" count="0" type="stmt"/>
+    </file>
+  </project>
+</coverage>

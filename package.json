@@ -19,6 +19,7 @@
     "@types/eslint": "^9.6.1",
     "@types/node": "^24.10.3",
     "@types/rails__actioncable": "^8.0.3",
+    "@vitest/coverage-v8": "^4.0.16",
     "clsx": "^2.1.1",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
@@ -71,6 +72,7 @@
     "format:fix": "pnpm format --write",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage"
   }
 }
