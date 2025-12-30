@@ -31,7 +31,8 @@
 class Reminder < ApplicationRecord
   belongs_to :user
 
-  enum repeat_period: {daily: 0, weekly: 1, monthly: 2, yearly: 3}
+  attribute :repeat_period, :integer
+  enum(:repeat_period, {daily: 0, weekly: 1, monthly: 2, yearly: 3})
 
   validates :title, presence: true
   validates :start, presence: true
