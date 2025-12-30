@@ -234,11 +234,10 @@
   }
 
   .calendar-table .day.today .cell-inner {
-    background-color: var(--color-accent);
+    border: 1px solid var(--color-primary);
   }
 
   .calendar-table .day.selected .cell-inner {
-    border: 1px solid var(--color-primary);
     background-color: var(--color-accent);
   }
 </style>
