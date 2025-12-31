@@ -2,15 +2,31 @@
   import { LunarCalendar } from "@forvn/vn-lunar-calendar"
   import { ChevronLeft, ChevronRight } from "@lucide/svelte"
 
-  import { MONTH_NAMES, isoToDate } from "@/utils"
+  import { MONTH_NAMES, isoToDate, formatDisplayTime } from "@/utils"
+
+  type Reminder = {
+    id: number
+    user_id: string
+    title: string
+    start: string
+    end?: string | null
+    notes?: string | null
+    alert_minutes?: number | null
+    is_lunar: boolean
+    repeat: boolean
+    repeat_period?: "daily" | "weekly" | "monthly" | "yearly" | number | null
+    created_at?: string
+    updated_at?: string
+  }
 
   interface Props {
     selectedISO: string | null
+    reminders: Reminder[]
     onPrevDay: () => void
     onNextDay: () => void
   }
 
-  let { selectedISO, onPrevDay, onNextDay }: Props = $props()
+  let { selectedISO, reminders, onPrevDay, onNextDay }: Props = $props()
 
   // Compute lunar calendar data once for selected date
   let selectedLunar = $derived.by(() => {
@@ -45,6 +61,14 @@
     const { dayCanChi, monthCanChi, yearCanChi } = selectedLunar
     return `Ngày ${dayCanChi} - Tháng ${monthCanChi} - Năm ${yearCanChi}`
   })
+
+  let selectedReminders = $derived.by(() => {
+    if (!selectedISO) return []
+    return reminders.filter((reminder) => {
+      const isoDate = new Date(reminder.start).toISOString().slice(0, 10)
+      return isoDate === selectedISO
+    })
+  })
 </script>
 
 <div class="date-info-container">
@@ -68,9 +92,25 @@
     <ChevronRight />
   </button>
 </div>
+<ul class="reminders-container">
+  {#each selectedReminders as reminder}
+    <li class="reminder">
+      <span class="time">
+        {formatDisplayTime(reminder.start)} - {formatDisplayTime(reminder.end)}
+      </span>
+      <span class="title">
+        {reminder.title}
+      </span>
+      <span class="notes">
+        {reminder.notes}
+      </span>
+    </li>
+  {/each}
+</ul>
 
 <style lang="postcss">
   .date-info-container {
+    max-width: fit-content;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -82,6 +122,7 @@
       gap: 6rem;
 
       .date-info {
+        min-width: 400px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -105,6 +146,44 @@
           font-size: 1.2rem;
           margin-top: 1rem;
         }
+      }
+    }
+  }
+
+  .reminders-container {
+    max-width: 1232px;
+    margin: 0 auto;
+
+    .reminder {
+      display: grid;
+      grid-template-columns: 0.75fr 1.5fr 3fr;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 1.1rem;
+      transition: background 0.12s ease;
+
+      &:hover {
+        background: var(--color-background);
+      }
+
+      .time,
+      .title,
+      .notes {
+        padding: 0.25rem 0.5rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: wrap;
+      }
+
+      .title {
+        font-weight: 600;
+      }
+
+      .notes {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
       }
     }
   }
