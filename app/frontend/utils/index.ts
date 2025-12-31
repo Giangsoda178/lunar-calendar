@@ -39,6 +39,7 @@ export {
   dateToISO,
   daysInMonth,
   formatShortDate,
+  formatDisplayTime,
   getLunarDayMonth,
   isoToDate,
 } from "./lunar-calendar"

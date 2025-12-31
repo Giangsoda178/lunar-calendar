@@ -126,6 +126,13 @@ export function formatShortDate(d: Date): string {
   return String(d.getDate()).padStart(2, "0")
 }
 
+export function formatDisplayTime(timestamp: string): string {
+  const date = new Date(timestamp)
+  const hours = String(date.getHours()).padStart(2, "0")
+  const minutes = String(date.getMinutes()).padStart(2, "0")
+  return `${hours}:${minutes}`
+}
+
 /**
  * Format lunar date as DD/MM string for display.
  * Used to show lunar day and month in each calendar cell.
