@@ -34,11 +34,7 @@
   const reminderDatesSet = $derived(new SvelteSet(reminder_dates))
 
   // State owned by page
-  let selectedISO = $state<string | null>(null)
-
-  onMount(() => {
-    if (!selectedISO) selectedISO = today
-  })
+  let selectedISO = $state<string | null>(today)
 
   function handleSelect(iso: string | null) {
     selectedISO = iso

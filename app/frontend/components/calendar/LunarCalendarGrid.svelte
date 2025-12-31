@@ -7,6 +7,7 @@
     buildCalendarGrid,
     dateToISO,
     formatShortDate,
+    isoToDate,
   } from "@/utils"
 
   interface Props {
@@ -20,9 +21,19 @@
     $props()
 
   // Internal navigation state
-  let displayYear = $state((initialDate ?? new Date()).getFullYear())
-  let displayMonth = $state((initialDate ?? new Date()).getMonth())
-  let grid = $state(buildCalendarGrid(displayYear, displayMonth))
+  const dateInfo = $derived.by(() => {
+    if (!selectedDate) return null
+    const d = isoToDate(selectedDate)
+    return { y: d.getFullYear(), m: d.getMonth() }
+  })
+
+  let displayYear = $derived(dateInfo?.y ?? 0)
+  let displayMonth = $derived(dateInfo?.m ?? 0)
+
+  let grid = $derived.by(() => {
+    if (!dateInfo) return []
+    return buildCalendarGrid(dateInfo.y, dateInfo.m)
+  })
 
   // Today for highlight
   const todayISO = dateToISO(initialDate as Date)
