@@ -7,11 +7,28 @@
   import DateInfoPanel from "@/components/calendar/DateInfoPanel.svelte"
   import { dateToISO, isoToDate } from "@/utils"
 
-  interface Props {
-    reminder_dates: string[]
+  type Reminder = {
+    id: number
+    user_id: string
+    title: string
+    start: string
+    end?: string | null
+    notes?: string | null
+    alert_minutes?: number | null
+    is_lunar: boolean
+    repeat: boolean
+    repeat_period?: "daily" | "weekly" | "monthly" | "yearly" | number | null
+    created_at?: string
+    updated_at?: string
   }
 
-  let { reminder_dates, today }: Props = $props()
+  interface Props {
+    reminder_dates: string[]
+    today: string
+    reminders: Reminder[]
+  }
+
+  let { reminder_dates, today, reminders }: Props = $props()
 
   // Convert array to SvelteSet for O(1) lookup with reactivity
   const reminderDatesSet = $derived(new SvelteSet(reminder_dates))
@@ -59,7 +76,12 @@
         onSelect={handleSelect}
         {reminderDatesSet}
       />
-      <DateInfoPanel {selectedISO} onPrevDay={prevDay} onNextDay={nextDay} />
+      <DateInfoPanel
+        {selectedISO}
+        {reminders}
+        onPrevDay={prevDay}
+        onNextDay={nextDay}
+      />
     </main>
   </div>
 </CalendarLayout>
