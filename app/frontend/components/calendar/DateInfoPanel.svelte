@@ -115,7 +115,7 @@
     justify-content: center;
     align-items: center;
     gap: 8rem;
-    margin: 2rem auto;
+    margin: 1rem auto;
 
     .date-info-wrapper {
       display: flex;
@@ -156,7 +156,7 @@
 
     .reminder {
       display: grid;
-      grid-template-columns: 0.75fr 1.5fr 3fr;
+      grid-template-columns: auto 1fr 2fr;
       align-items: center;
       padding: 0.5rem 0;
       border-bottom: 1px solid var(--color-border);
@@ -170,7 +170,7 @@
       .time,
       .title,
       .notes {
-        padding: 0.25rem 0.5rem;
+        padding: 0.25rem 1rem;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: wrap;

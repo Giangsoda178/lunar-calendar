@@ -152,7 +152,7 @@
 
 <style lang="postcss">
   .month-title {
-    margin: 0 auto;
+    margin: 3rem auto 1rem;
     font-size: 2rem;
     font-weight: 700;
     text-align: center;

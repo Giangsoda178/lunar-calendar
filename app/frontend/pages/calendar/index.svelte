@@ -66,17 +66,17 @@
 <CalendarLayout>
   <div class="flex min-w-0 flex-col gap-6">
     <main class="main-content">
-      <LunarCalendarGrid
-        initialDate={isoToDate(today)}
-        selectedDate={selectedISO}
-        onSelect={handleSelect}
-        {reminderDatesSet}
-      />
       <DateInfoPanel
         {selectedISO}
         {reminders}
         onPrevDay={prevDay}
         onNextDay={nextDay}
+      />
+      <LunarCalendarGrid
+        initialDate={isoToDate(today)}
+        selectedDate={selectedISO}
+        onSelect={handleSelect}
+        {reminderDatesSet}
       />
     </main>
   </div>
