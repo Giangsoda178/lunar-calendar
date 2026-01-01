@@ -3,8 +3,9 @@
 # Table name: reminders
 #
 #  id            :integer          not null, primary key
+#  alert         :boolean          default(FALSE), not null
 #  alert_minutes :integer
-#  end           :datetime
+#  end           :datetime         not null
 #  is_lunar      :boolean          default(FALSE), not null
 #  notes         :string
 #  repeat        :boolean          default(FALSE), not null

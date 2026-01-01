@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { onMount } from "svelte"
   import { SvelteSet } from "svelte/reactivity"
 
   import CalendarLayout from "@/layouts/CalendarLayout.svelte"
   import LunarCalendarGrid from "@/components/calendar/LunarCalendarGrid.svelte"
   import DateInfoPanel from "@/components/calendar/DateInfoPanel.svelte"
+  import Button from "@/components/ui/Button.svelte"
   import { dateToISO, isoToDate } from "@/utils"
 
   type Reminder = {
@@ -12,8 +12,9 @@
     user_id: string
     title: string
     start: string
-    end?: string | null
+    end: string
     notes?: string | null
+    alert: boolean
     alert_minutes?: number | null
     is_lunar: boolean
     repeat: boolean
@@ -35,6 +36,8 @@
 
   // State owned by page
   let selectedISO = $state<string | null>(today)
+
+  let isSaving = false
 
   function handleSelect(iso: string | null) {
     selectedISO = iso
@@ -65,7 +68,7 @@
 
 <CalendarLayout>
   <div class="flex min-w-0 flex-col gap-6">
-    <main class="main-content">
+    <main class="main-content relative">
       <DateInfoPanel
         {selectedISO}
         {reminders}
@@ -78,6 +81,17 @@
         onSelect={handleSelect}
         {reminderDatesSet}
       />
+      <Button
+        class="absolute right-4 bottom-4 text-2xl"
+        loading={isSaving}
+        disabled={isSaving}
+        variant="primary"
+        size="lg-icon"
+        href="/reminders/new"
+        aria-label="Add Reminder"
+      >
+        +
+      </Button>
     </main>
   </div>
 </CalendarLayout>
