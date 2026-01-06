@@ -24,15 +24,16 @@
   }
 
   interface Props {
-    reminder_dates: string[]
     today: string
     reminders: Reminder[]
   }
 
-  let { reminder_dates, today, reminders }: Props = $props()
+  let { today, reminders }: Props = $props()
 
   // Convert array to SvelteSet for O(1) lookup with reactivity
-  const reminderDatesSet = $derived(new SvelteSet(reminder_dates))
+  const reminderDatesSet = $derived.by(() => {
+    return new SvelteSet(reminders.map((r) => dateToISO(isoToDate(r.start))))
+  })
 
   // State owned by page
   let selectedISO = $state<string | null>(today)
