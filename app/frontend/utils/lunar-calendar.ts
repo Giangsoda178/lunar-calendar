@@ -65,6 +65,20 @@ export interface CalendarCell {
   lunarDisplay: string | null
 }
 
+export function normalizeISO(iso: string): string {
+  if (!iso) return iso
+  // ISO pattern with optional fractional seconds and optional timezone
+  const isoRegex =
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+\-]\d{2}:\d{2})?$/
+  if (!isoRegex.test(iso)) return iso
+  // If it already has a timezone (Z or +hh:mm / -hh:mm) return as-is
+  if (/[Z+\-]\d{2}:\d{2}$/.test(iso) || iso.endsWith("Z")) {
+    return iso
+  }
+  // No timezone present: treat server value as UTC by appending 'Z'
+  return iso + "Z"
+}
+
 /**
  * Convert Date to ISO string (YYYY-MM-DD) for local timezone.
  * Does NOT use toISOString() which would convert to UTC and potentially shift the date.
@@ -91,8 +105,8 @@ export function dateToISO(d: Date): string {
  * isoToDate("2024-12-31") // Date for Dec 31, 2024 midnight local time
  */
 export function isoToDate(iso: string): Date {
-  const [y, m, d] = iso.split("-").map(Number)
-  return new Date(y, m - 1, d)
+  const normalized = normalizeISO(iso)
+  return new Date(normalized)
 }
 
 /**
