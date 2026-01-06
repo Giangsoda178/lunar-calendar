@@ -2,7 +2,7 @@
   import { LunarCalendar } from "@forvn/vn-lunar-calendar"
   import { ChevronLeft, ChevronRight } from "@lucide/svelte"
 
-  import { MONTH_NAMES, isoToDate, formatDisplayTime } from "@/utils"
+  import { MONTH_NAMES, isoToDate, dateToISO, formatDisplayTime } from "@/utils"
 
   type Reminder = {
     id: number
@@ -65,7 +65,7 @@
   let selectedReminders = $derived.by(() => {
     if (!selectedISO) return []
     return reminders.filter((reminder) => {
-      const isoDate = new Date(reminder.start).toISOString().slice(0, 10)
+      const isoDate = dateToISO(isoToDate(reminder.start))
       return isoDate === selectedISO
     })
   })
