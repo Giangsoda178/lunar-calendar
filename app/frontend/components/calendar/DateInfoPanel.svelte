@@ -1,32 +1,28 @@
 <script lang="ts">
   import { LunarCalendar } from "@forvn/vn-lunar-calendar"
-  import { ChevronLeft, ChevronRight } from "@lucide/svelte"
+  import { ChevronLeft, ChevronRight, Pencil, Trash2 } from "@lucide/svelte"
+  import { inertia, router } from "@inertiajs/svelte"
 
-  import { MONTH_NAMES, isoToDate, dateToISO, formatDisplayTime } from "@/utils"
-
-  type Reminder = {
-    id: number
-    user_id: string
-    title: string
-    start: string
-    end?: string | null
-    notes?: string | null
-    alert_minutes?: number | null
-    is_lunar: boolean
-    repeat: boolean
-    repeat_period?: "daily" | "weekly" | "monthly" | "yearly" | number | null
-    created_at?: string
-    updated_at?: string
-  }
+  import { MONTH_NAMES, isoToDate, formatDisplayTime } from "@/utils"
+  import { editReminderPath, reminderPath } from "@/routes"
+  import type { Reminder, Occurrence } from "@/types/reminder"
 
   interface Props {
     selectedISO: string | null
     reminders: Reminder[]
+    occurrences: Occurrence[]
     onPrevDay: () => void
     onNextDay: () => void
   }
 
-  let { selectedISO, reminders, onPrevDay, onNextDay }: Props = $props()
+  let { selectedISO, reminders, occurrences, onPrevDay, onNextDay }: Props =
+    $props()
+
+  // Index reminders by id so we can resolve an Occurrence to its source
+  // record in O(1) while rendering.
+  const remindersById = $derived.by(
+    () => new Map(reminders.map((r) => [r.id, r])),
+  )
 
   // Compute lunar calendar data once for selected date
   let selectedLunar = $derived.by(() => {
@@ -62,13 +58,21 @@
     return `Ngày ${dayCanChi} - Tháng ${monthCanChi} - Năm ${yearCanChi}`
   })
 
+  // Match occurrences (NOT raw reminders) against the selected day. This
+  // way a weekly/monthly/yearly reminder shows on every firing date, not
+  // just its original start.
   let selectedReminders = $derived.by(() => {
     if (!selectedISO) return []
-    return reminders.filter((reminder) => {
-      const isoDate = dateToISO(isoToDate(reminder.start))
-      return isoDate === selectedISO
-    })
+    return occurrences
+      .filter((o) => o.date === selectedISO)
+      .map((o) => remindersById.get(o.reminder_id))
+      .filter((r): r is Reminder => r !== undefined)
   })
+
+  function deleteReminder(id: number) {
+    if (!confirm("Delete this reminder?")) return
+    router.delete(reminderPath(id), { preserveScroll: true })
+  }
 </script>
 
 <div class="date-info-container">
@@ -103,6 +107,24 @@
       </span>
       <span class="notes">
         {reminder.notes}
+      </span>
+      <span class="actions">
+        <a
+          href={editReminderPath(reminder.id)}
+          use:inertia
+          class="action"
+          aria-label="Edit reminder"
+        >
+          <Pencil size="18" />
+        </a>
+        <button
+          type="button"
+          class="action"
+          aria-label="Delete reminder"
+          onclick={() => deleteReminder(reminder.id)}
+        >
+          <Trash2 size="18" />
+        </button>
       </span>
     </li>
   {/each}
@@ -156,7 +178,7 @@
 
     .reminder {
       display: grid;
-      grid-template-columns: auto 1fr 2fr;
+      grid-template-columns: auto 1fr 2fr auto;
       align-items: center;
       padding: 0.5rem 0;
       border-bottom: 1px solid var(--color-border);
@@ -184,6 +206,31 @@
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
+      }
+
+      .actions {
+        display: flex;
+        gap: 0.5rem;
+        padding: 0 1rem;
+
+        .action {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 2rem;
+          height: 2rem;
+          border-radius: 0.375rem;
+          color: var(--color-muted-foreground);
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          transition: background 0.12s ease, color 0.12s ease;
+
+          &:hover {
+            background: var(--color-sidebar-accent);
+            color: var(--color-foreground);
+          }
+        }
       }
     }
   }
