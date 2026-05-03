@@ -6,7 +6,7 @@
 #  alert          :boolean          default(FALSE), not null
 #  alert_minutes  :integer
 #  deleted_at     :datetime
-#  end            :datetime         not null
+#  end            :datetime
 #  is_lunar       :boolean          default(FALSE), not null
 #  notes          :string
 #  repeat         :boolean          default(FALSE), not null

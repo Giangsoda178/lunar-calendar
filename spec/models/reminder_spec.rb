@@ -8,7 +8,7 @@
 #  alert          :boolean          default(FALSE), not null
 #  alert_minutes  :integer
 #  deleted_at     :datetime
-#  end            :datetime         not null
+#  end            :datetime
 #  is_lunar       :boolean          default(FALSE), not null
 #  notes          :string
 #  repeat         :boolean          default(FALSE), not null
@@ -35,5 +35,10 @@
 require "rails_helper"
 
 RSpec.describe Reminder, type: :model do
-  pending "add some examples to (or delete) #{__FILE__}"
+  it "allows a nil end time" do
+    user = create(:user)
+    reminder = build(:reminder, user: user, end: nil)
+    expect(reminder).to be_valid
+    expect { reminder.save! }.not_to raise_error
+  end
 end

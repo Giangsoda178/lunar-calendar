@@ -8,7 +8,7 @@
 #  alert          :boolean          default(FALSE), not null
 #  alert_minutes  :integer
 #  deleted_at     :datetime
-#  end            :datetime         not null
+#  end            :datetime
 #  is_lunar       :boolean          default(FALSE), not null
 #  notes          :string
 #  repeat         :boolean          default(FALSE), not null
@@ -44,7 +44,6 @@ class Reminder < ApplicationRecord
 
   validates :title, presence: true
   validates :start, presence: true
-  validates :end, presence: true
   validates :is_lunar, inclusion: {in: [true, false]}
   validates :repeat, inclusion: {in: [true, false]}
   validates :repeat_period, presence: true, if: :repeat?
@@ -58,7 +57,13 @@ class Reminder < ApplicationRecord
   validate :end_on_or_after_start
   validate :repeat_ends_at_after_start
 
+  before_validation :nilify_blank_end
+
   private
+
+  def nilify_blank_end
+    write_attribute(:end, nil) if read_attribute(:end).blank?
+  end
 
   def end_on_or_after_start
     return if self[:end].blank? || start.blank?
