@@ -147,12 +147,11 @@
         {/if}
       </Field>
 
-      <Field label="End*" name="end" error={errors.end}>
+      <Field label="End" name="end" error={errors.end}>
         <Input
           name="reminder[end]"
           type="datetime-local"
           defaultValue={toLocalInput(reminder.end)}
-          required
           invalid={!!errors.end}
         />
       </Field>

@@ -5,7 +5,7 @@ export type Reminder = {
   user_id: string
   title: string
   start: string
-  end: string
+  end?: string | null
   notes?: string | null
   alert: boolean
   alert_minutes?: number | null

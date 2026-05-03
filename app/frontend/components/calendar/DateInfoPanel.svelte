@@ -100,7 +100,8 @@
   {#each selectedReminders as reminder}
     <li class="reminder">
       <span class="time">
-        {formatDisplayTime(reminder.start)} - {formatDisplayTime(reminder.end)}
+        {formatDisplayTime(reminder.start)}{#if reminder.end}
+          {" "}- {formatDisplayTime(reminder.end)}{/if}
       </span>
       <span class="title">
         {reminder.title}
