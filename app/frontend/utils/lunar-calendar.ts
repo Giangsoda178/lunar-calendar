@@ -17,7 +17,13 @@
  * // Returns 5 or 6 rows of 7 cells each
  * ```
  */
-import { LunarCalendar } from "@forvn/vn-lunar-calendar"
+import {
+  getLunarDate,
+  getSolarDate,
+  getYearInfo,
+  LunarCalendar,
+} from "@forvn/vn-lunar-calendar"
+import type { LunarDate } from "@forvn/vn-lunar-calendar"
 
 // Use Intl.DateTimeFormat for locale-aware month/weekday names
 const monthFormatter = new Intl.DateTimeFormat("en-US", { month: "long" })
@@ -124,6 +130,64 @@ export function isoToDate(iso: string): Date {
  */
 export function daysInMonth(year: number, month: number): number {
   return new Date(year, month + 1, 0).getDate()
+}
+
+function lunarMonthLength(lunarYear: number, month: number, leap: boolean): number {
+  const ly = getYearInfo(lunarYear)
+  const idx = ly.findIndex((m) => m.month === month && m.leap === leap)
+  if (idx < 0) {
+    throw new Error(`lunar month not found: ${lunarYear}-${month} leap=${leap}`)
+  }
+  const endJd =
+    idx + 1 < ly.length ? ly[idx + 1]!.jd : getYearInfo(lunarYear + 1)[0]!.jd
+  return endJd - ly[idx]!.jd
+}
+
+export function advanceLunarMonthOne(
+  lunarYear: number,
+  month: number,
+  day: number,
+  leap: boolean,
+): { year: number; month: number; day: number; leap: boolean } | null {
+  const ly = getYearInfo(lunarYear)
+  const idx = ly.findIndex((m) => m.month === month && m.leap === leap)
+  if (idx < 0) return null
+  let nxt: LunarDate
+  let y2: number
+  if (idx + 1 < ly.length) {
+    nxt = ly[idx + 1]!
+    y2 = lunarYear
+  } else {
+    const ly2 = getYearInfo(lunarYear + 1)
+    nxt = ly2[0]!
+    y2 = lunarYear + 1
+  }
+  const len = lunarMonthLength(y2, nxt.month, nxt.leap)
+  const d2 = Math.min(day, len)
+  return { year: y2, month: nxt.month, day: d2, leap: nxt.leap }
+}
+
+export function addLunarMonthsToLocalDate(d: Date, monthsToAdd: number): Date {
+  if (monthsToAdd <= 0) return new Date(d)
+  const lu = getLunarDate(d.getDate(), d.getMonth() + 1, d.getFullYear())
+  if (lu.year === 0) return new Date(d)
+  let y = lu.year
+  let m = lu.month
+  let day = lu.day
+  let leap = lu.leap
+  for (let i = 0; i < monthsToAdd; i++) {
+    const nxt = advanceLunarMonthOne(y, m, day, leap)
+    if (!nxt) return new Date(d)
+    y = nxt.year
+    m = nxt.month
+    day = nxt.day
+    leap = nxt.leap
+  }
+  const s = getSolarDate(day, m, y, leap)
+  if (s.year === 0) return new Date(d)
+  const out = new Date(d)
+  out.setFullYear(s.year, s.month - 1, s.day)
+  return out
 }
 
 /**

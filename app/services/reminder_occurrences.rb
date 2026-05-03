@@ -86,11 +86,39 @@ class ReminderOccurrences
     end
 
     def expand_monthly(reminder, range_start, range_end)
+      if reminder.is_lunar?
+        expand_monthly_lunar(reminder, range_start, range_end)
+      else
+        expand_monthly_solar(reminder, range_start, range_end)
+      end
+    end
+
+    def expand_monthly_solar(reminder, range_start, range_end)
       start_date = reminder.start.to_date
       current = start_date
-      # Skip forward in month steps until we enter the window.
       current = next_month_on(current, start_date.day) while current < range_start
       build_series(reminder, current, range_end) { |d| next_month_on(d, start_date.day) }
+    end
+
+    def expand_monthly_lunar(reminder, range_start, range_end)
+      start_date = reminder.start.to_date
+      current = start_date
+      while current < range_start
+        nxt = next_lunar_month_solar(current)
+        return [] unless nxt
+        current = nxt
+      end
+      build_series(reminder, current, range_end) { |d| next_lunar_month_solar(d) || (range_end + 1) }
+    end
+
+    def next_lunar_month_solar(solar_date)
+      l = LunarConversion.solar_to_lunar(solar_date)
+      nxt = LunarConversion.advance_lunar_month(year: l[:year], month: l[:month], day: l[:day], leap: l[:leap])
+      return nil unless nxt
+
+      LunarConversion.lunar_to_solar(nxt[:year], nxt[:month], nxt[:day], leap: nxt[:leap])
+    rescue ArgumentError
+      nil
     end
 
     # Step to the next same-day-of-month. If the target day doesn't exist

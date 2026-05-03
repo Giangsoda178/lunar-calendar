@@ -5,6 +5,7 @@
   import { LunarCalendar } from "@forvn/vn-lunar-calendar"
 
   import Field from "@/components/ui/Field.svelte"
+  import { addLunarMonthsToLocalDate } from "@/utils/lunar-calendar"
   import Input from "@/components/ui/Input.svelte"
   import Textarea from "@/components/ui/Textarea.svelte"
   import Label from "@/components/ui/Label.svelte"
@@ -92,7 +93,8 @@
   // When the user picks "After N occurrences" we compute the end date
   // client-side rather than adding a second DB column. Advance from `start`
   // by (N - 1) periods of the chosen type. Matches ReminderOccurrences'
-  // expansion semantics (including Feb-30 -> Feb-28 clamp on monthly).
+  // expansion semantics (solar monthly: Feb-30 -> Feb-28 clamp; lunar monthly:
+  // same lunar day, next lunar month).
   function computedEndsAt(): string {
     if (!startValue || endsAfterN < 1 || !repeatPeriod) return ""
     const d = new Date(startValue)
@@ -101,10 +103,14 @@
     if (repeatPeriod === "daily") d.setDate(d.getDate() + steps)
     else if (repeatPeriod === "weekly") d.setDate(d.getDate() + steps * 7)
     else if (repeatPeriod === "monthly") {
-      const targetDay = d.getDate()
-      d.setMonth(d.getMonth() + steps)
-      // Clamp if the target day doesn't exist in the landing month.
-      if (d.getDate() !== targetDay) d.setDate(0)
+      if (isLunar) {
+        const next = addLunarMonthsToLocalDate(d, steps)
+        d.setTime(next.getTime())
+      } else {
+        const targetDay = d.getDate()
+        d.setMonth(d.getMonth() + steps)
+        if (d.getDate() !== targetDay) d.setDate(0)
+      }
     } else if (repeatPeriod === "yearly") d.setFullYear(d.getFullYear() + steps)
     const pad = (n: number) => String(n).padStart(2, "0")
     // End-of-day so occurrences on the final day still count.

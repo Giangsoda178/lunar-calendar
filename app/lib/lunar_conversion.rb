@@ -11,6 +11,7 @@
 # Public API:
 #   LunarConversion.solar_to_lunar(date)  -> { day:, month:, year:, leap: }
 #   LunarConversion.lunar_to_solar(lunar_year, lunar_month, lunar_day, leap: false) -> Date
+#   LunarConversion.advance_lunar_month(year:, month:, day:, leap:) -> Hash or nil
 #
 # Supported year range: 1200..2199 (matches the year tables in year_tables.rb).
 module LunarConversion
@@ -62,7 +63,41 @@ module LunarConversion
       jdn_to_date(jd)
     end
 
+    # Same lunar day-of-month, next lunar month (Vietnamese lunar month order,
+    # including leap months). Day is clamped when the target month is shorter.
+    # Returns nil if the current month slot cannot be resolved (should not happen
+    # for dates produced by solar_to_lunar).
+    def advance_lunar_month(year:, month:, day:, leap:)
+      ly = decode_year(year)
+      idx = ly.find_index { |m| m.month == month && m.leap == leap }
+      return nil unless idx
+
+      year2, nxt = if idx + 1 < ly.length
+        [year, ly[idx + 1]]
+      else
+        ly2 = decode_year(year + 1)
+        [year + 1, ly2[0]]
+      end
+
+      span = lunar_month_span_days(year2, nxt.month, nxt.leap)
+      d2 = [day, span].min
+      {year: year2, month: nxt.month, day: d2, leap: nxt.leap}
+    end
+
     private
+
+    def lunar_month_span_days(lunar_year, lunar_month, leap)
+      ly = decode_year(lunar_year)
+      idx = ly.find_index { |m| m.month == lunar_month && m.leap == leap }
+      raise ArgumentError, "unknown lunar month" unless idx
+
+      end_jd = if idx + 1 < ly.length
+        ly[idx + 1].jd
+      else
+        decode_year(lunar_year + 1).first.jd
+      end
+      end_jd - ly[idx].jd
+    end
 
     # Julian Day Number from a Gregorian (or pre-1582 Julian) date. The
     # algorithm is standard and matches the JS library byte-for-byte.
