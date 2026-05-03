@@ -20,11 +20,11 @@ describe("dateToISO", () => {
 
 describe("isoToDate", () => {
   it("standard ISO", () => {
-    expect(isoToDate("2024-01-15")).toEqual(new Date(2024, 0, 15))
-    expect(isoToDate("2024-12-31")).toEqual(new Date(2024, 11, 31))
+    expect(isoToDate("2024-01-15").toISOString()).toBe("2024-01-15T00:00:00.000Z")
+    expect(isoToDate("2024-12-31").toISOString()).toBe("2024-12-31T00:00:00.000Z")
   })
   it("handles leap day", () => {
-    expect(isoToDate("2024-02-29")).toEqual(new Date(2024, 1, 29))
+    expect(isoToDate("2024-02-29").toISOString()).toBe("2024-02-29T00:00:00.000Z")
   })
 })
 
