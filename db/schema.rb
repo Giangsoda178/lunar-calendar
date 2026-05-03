@@ -10,20 +10,23 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_01_01_030737) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_23_141447) do
   create_table "reminders", force: :cascade do |t|
     t.boolean "alert", default: false, null: false
     t.integer "alert_minutes"
     t.datetime "created_at", null: false
+    t.datetime "deleted_at"
     t.datetime "end", null: false
     t.boolean "is_lunar", default: false, null: false
     t.string "notes"
     t.boolean "repeat", default: false, null: false
+    t.datetime "repeat_ends_at"
     t.integer "repeat_period"
     t.datetime "start", null: false
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.string "user_id", null: false
+    t.index ["deleted_at"], name: "index_reminders_on_deleted_at"
     t.index ["is_lunar"], name: "index_reminders_on_is_lunar"
     t.index ["repeat_period"], name: "index_reminders_on_repeat_period"
     t.index ["start"], name: "index_reminders_on_start"
@@ -38,6 +41,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_01_01_030737) do
     t.string "last_name"
     t.string "password_digest"
     t.string "role", default: "user", null: false
+    t.string "timezone", default: "Asia/Ho_Chi_Minh", null: false
     t.boolean "two_fa_enabled"
     t.string "two_fa_secret"
     t.datetime "updated_at", null: false
