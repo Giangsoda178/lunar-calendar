@@ -30,5 +30,6 @@ FactoryBot.define do
     two_fa_enabled { false }
     two_fa_secret { nil }
     role { "user" }
+    timezone { "Asia/Ho_Chi_Minh" }
   end
 end

@@ -42,16 +42,30 @@ class User < ApplicationRecord
   validates :password, length: {minimum: 8}, allow_nil: true
   validate :password_complexity, if: -> { password.present? }
 
-  # Restrict to IANA zone ids that Rails/TZInfo recognise. Using an
-  # unknown string would make `Time.use_zone(user.timezone)` raise deep
-  # in a request and produce a confusing 500; validate at save-time instead.
-  validates :timezone, inclusion: {in: ->(_) { ActiveSupport::TimeZone::MAPPING.values + ActiveSupport::TimeZone.all.map(&:name) }}
+  # Reject unknown strings so `Time.use_zone(user.timezone)` cannot raise mid-request.
+  validate :timezone_must_be_recognized
 
   def full_name
     [first_name, last_name].compact.join(" ")
   end
 
   private
+
+  def timezone_must_be_recognized
+    return if timezone.blank?
+    return if recognized_time_zone?(timezone)
+
+    errors.add(:timezone, :inclusion)
+  end
+
+  def recognized_time_zone?(tz)
+    return true if ActiveSupport::TimeZone[tz]
+
+    TZInfo::Timezone.get(tz)
+    true
+  rescue TZInfo::InvalidTimezoneIdentifier
+    false
+  end
 
   def password_complexity
     return if password.blank?
