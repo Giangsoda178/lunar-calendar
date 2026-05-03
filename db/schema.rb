@@ -10,13 +10,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_23_141447) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_03_120000) do
   create_table "reminders", force: :cascade do |t|
     t.boolean "alert", default: false, null: false
     t.integer "alert_minutes"
     t.datetime "created_at", null: false
     t.datetime "deleted_at"
-    t.datetime "end", null: false
+    t.datetime "end"
     t.boolean "is_lunar", default: false, null: false
     t.string "notes"
     t.boolean "repeat", default: false, null: false
