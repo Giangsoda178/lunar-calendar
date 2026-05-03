@@ -10,6 +10,7 @@
 #  last_name       :string
 #  password_digest :string
 #  role            :string           default("user"), not null
+#  timezone        :string           default("Asia/Ho_Chi_Minh"), not null
 #  two_fa_enabled  :boolean
 #  two_fa_secret   :string
 #  created_at      :datetime         not null
@@ -22,6 +23,9 @@
 class User < ApplicationRecord
   has_secure_password
   include IdGenerator
+
+  has_many :reminders
+  before_destroy { reminders.discard_all }
 
   attribute :role, :string
   enum :role, {admin: "admin", user: "user"}
@@ -37,6 +41,11 @@ class User < ApplicationRecord
 
   validates :password, length: {minimum: 8}, allow_nil: true
   validate :password_complexity, if: -> { password.present? }
+
+  # Restrict to IANA zone ids that Rails/TZInfo recognise. Using an
+  # unknown string would make `Time.use_zone(user.timezone)` raise deep
+  # in a request and produce a confusing 500; validate at save-time instead.
+  validates :timezone, inclusion: {in: ->(_) { ActiveSupport::TimeZone::MAPPING.values + ActiveSupport::TimeZone.all.map(&:name) }}
 
   def full_name
     [first_name, last_name].compact.join(" ")
