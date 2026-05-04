@@ -57,7 +57,7 @@
 </svelte:head>
 
 <CalendarLayout>
-  <div class="flex min-w-0 flex-col gap-6">
+  <div class="flex min-w-0 flex-col gap-4 md:gap-6">
     <main class="main-content relative">
       <DateInfoPanel
         {selectedISO}
@@ -73,7 +73,7 @@
         {reminderDatesSet}
       />
       <Button
-        class="absolute right-4 bottom-4 text-2xl"
+        class="fixed right-4 bottom-[calc(var(--safe-area-bottom)+1rem)] z-20 text-2xl shadow-lg md:absolute md:right-4 md:bottom-4"
         loading={isSaving}
         disabled={isSaving}
         variant="primary"

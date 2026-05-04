@@ -17,8 +17,12 @@
     reminderDatesSet?: Set<string>
   }
 
-  let { initialDate, selectedDate, onSelect, reminderDatesSet }: Props =
-    $props()
+  let {
+    initialDate = new Date(),
+    selectedDate,
+    onSelect,
+    reminderDatesSet,
+  }: Props = $props()
 
   // Internal navigation state
   const dateInfo = $derived.by(() => {
@@ -36,7 +40,7 @@
   })
 
   // Today for highlight
-  const todayISO = dateToISO(initialDate as Date)
+  const todayISO = $derived(dateToISO(initialDate))
 
   function navigateMonth(offset: number) {
     const d = new Date(displayYear, displayMonth + offset, 1)
@@ -57,7 +61,7 @@
     displayYear = initialDate.getFullYear()
     displayMonth = initialDate.getMonth()
     grid = buildCalendarGrid(displayYear, displayMonth)
-    onSelect(dateToISO(initialDate as Date))
+    onSelect(dateToISO(initialDate))
   }
 
   function selectCell(iso: string | null) {
@@ -65,6 +69,8 @@
     if (iso === selectedDate) return
     onSelect(iso)
   }
+
+  const shortWeekdayNames = WEEKDAY_NAMES.map((weekday) => weekday.slice(0, 3))
 </script>
 
 <h1 class="month-title">{MONTH_NAMES[displayMonth]} {displayYear}</h1>
@@ -98,8 +104,13 @@
     </colgroup>
     <thead>
       <tr>
-        {#each WEEKDAY_NAMES as wd (wd)}
-          <th scope="col">{wd}</th>
+        {#each WEEKDAY_NAMES as wd, i (wd)}
+          <th scope="col" aria-label={wd}>
+            <span class="weekday-full">{wd}</span>
+            <span class="weekday-short" aria-hidden="true">
+              {shortWeekdayNames[i]}
+            </span>
+          </th>
         {/each}
       </tr>
     </thead>
@@ -152,11 +163,12 @@
 
 <style lang="postcss">
   .month-title {
-    margin: 3rem auto 1rem;
-    font-size: 2rem;
+    margin: clamp(1.5rem, 6vw, 3rem) auto 1rem;
+    font-size: clamp(1.5rem, 5vw, 2rem);
     font-weight: 700;
     text-align: center;
     text-transform: uppercase;
+    line-height: 1.1;
   }
 
   .calendar-btns {
@@ -164,7 +176,7 @@
     justify-content: flex-end;
     align-items: center;
     gap: 0.25rem;
-    margin-left: 2rem;
+    margin-inline: auto 0;
 
     .left-btn,
     .right-btn {
@@ -174,15 +186,18 @@
   }
 
   .calendar-table-wrapper {
-    width: fit-content;
-    margin: 2rem auto;
+    width: min(100%, 1232px);
+    margin: clamp(1rem, 4vw, 2rem) auto;
     border-radius: 16px;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .calendar-table {
     border-collapse: separate;
     table-layout: fixed;
+    width: 100%;
+    min-width: 42rem;
     margin: 1rem auto;
 
     th,
@@ -204,7 +219,8 @@
     align-items: flex-start;
     justify-content: flex-start;
     gap: 0.25rem;
-    padding: 0.5rem 1.5rem;
+    min-height: 7rem;
+    padding: 0.5rem 1.25rem;
     border-radius: 12px;
     box-sizing: border-box;
     cursor: pointer;
@@ -215,14 +231,14 @@
     }
 
     .solar-date {
-      font-size: 2rem;
+      font-size: clamp(1.5rem, 3vw, 2rem);
       font-weight: 600;
       margin-bottom: 0.5rem;
     }
 
     .lunar-date {
-      font-size: 1.2rem;
-      margin-left: 4rem;
+      align-self: flex-end;
+      font-size: clamp(0.875rem, 2vw, 1.2rem);
 
       &.first-day,
       &.mid-day {
@@ -250,5 +266,94 @@
 
   .calendar-table .day.selected .cell-inner {
     background-color: var(--color-accent);
+  }
+
+  .weekday-short {
+    display: none;
+  }
+
+  @media (max-width: 767px) {
+    .month-title {
+      margin-top: 1rem;
+    }
+
+    .calendar-btns {
+      justify-content: center;
+      margin-inline: 0;
+
+      .left-btn,
+      .right-btn,
+      .today-btn {
+        min-width: 2.25rem;
+        min-height: 2.25rem;
+      }
+
+      .left-btn,
+      .right-btn {
+        padding: 0.375rem;
+      }
+
+      .today-btn {
+        padding-inline: 0.625rem;
+      }
+    }
+
+    .calendar-table-wrapper {
+      margin-block: 0.75rem;
+      padding-bottom: 0.25rem;
+      border-radius: 0;
+    }
+
+    .calendar-table {
+      min-width: 100%;
+      margin-block: 0.75rem;
+
+      th,
+      td {
+        padding: 0.125rem;
+      }
+
+      th {
+        font-size: 1rem;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+      }
+
+      .weekday-full {
+        display: none;
+      }
+
+      .weekday-short {
+        display: inline;
+      }
+    }
+
+    .cell-inner {
+      min-height: 4.25rem;
+      gap: 0.125rem;
+      padding: 0.375rem;
+      align-items: center;
+      border-radius: 0.625rem;
+
+      .solar-date {
+        margin-bottom: 0;
+        font-size: 1.125rem;
+        line-height: 1;
+      }
+
+      .lunar-date {
+        align-self: center;
+        min-height: 1rem;
+        font-size: 0.6875rem;
+        line-height: 1.1;
+      }
+
+      .reminder-dot {
+        top: 0.375rem;
+        right: 0.375rem;
+        width: 0.4375rem;
+        height: 0.4375rem;
+      }
+    }
   }
 </style>
