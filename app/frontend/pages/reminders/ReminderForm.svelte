@@ -129,7 +129,7 @@
 
 <Form {action} {method}>
   {#snippet children({ processing }: FormComponentSlotProps)}
-    <div class="max-w-lg space-y-5">
+    <div class="w-full max-w-2xl space-y-5">
       <Field label="Title*" name="title" error={errors.title}>
         <Input
           name="reminder[title]"
@@ -186,7 +186,7 @@
             name="reminder[alert_minutes]"
             type="number"
             min="0"
-            class="w-48"
+            class="w-full sm:w-48"
             defaultValue={reminder.alert_minutes ?? 0}
             invalid={!!errors.alert_minutes}
           />
@@ -206,7 +206,7 @@
         >
           <select
             name="reminder[repeat_period]"
-            class="w-48"
+            class="w-full sm:w-48"
             aria-invalid={!!errors.repeat_period}
             bind:value={repeatPeriod}
           >
@@ -222,7 +222,7 @@
              mode is active, we resolve it to a single datetime and ship
              that via the hidden `reminder[repeat_ends_at]` input below. -->
         <Field label="Ends" name="repeat_ends_at" error={errors.repeat_ends_at}>
-          <select class="w-48" bind:value={endsMode}>
+          <select class="w-full sm:w-48" bind:value={endsMode}>
             <option value="never">Never</option>
             <option value="on-date">On date</option>
             <option value="after-n">After N occurrences</option>
@@ -230,14 +230,14 @@
         </Field>
         {#if endsMode === "on-date"}
           <Field label="End date" name="repeat_ends_on">
-            <Input type="date" class="w-48" bind:value={endsOnDate} />
+            <Input type="date" class="w-full sm:w-48" bind:value={endsOnDate} />
           </Field>
         {:else if endsMode === "after-n"}
           <Field label="Number of occurrences" name="repeat_count">
             <Input
               type="number"
               min="1"
-              class="w-48"
+              class="w-full sm:w-48"
               bind:value={endsAfterN}
             />
           </Field>
@@ -260,7 +260,7 @@
       </Label>
 
       <div>
-        <Button type="submit" disabled={processing}>
+        <Button type="submit" disabled={processing} class="w-full sm:w-auto">
           {processing ? "Saving..." : submitLabel}
         </Button>
       </div>

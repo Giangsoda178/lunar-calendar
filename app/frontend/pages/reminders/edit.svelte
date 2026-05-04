@@ -16,7 +16,7 @@
 </svelte:head>
 
 <CalendarLayout>
-  <h1 class="mb-4 text-2xl font-semibold">Edit Reminder</h1>
+  <h1 class="mb-4 text-xl font-semibold sm:text-2xl">Edit Reminder</h1>
   <ReminderForm
     {reminder}
     action={reminderPath(reminder.id)}
