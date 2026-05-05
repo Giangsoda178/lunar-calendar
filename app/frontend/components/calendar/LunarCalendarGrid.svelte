@@ -336,23 +336,25 @@
       border-radius: 0.625rem;
 
       .solar-date {
+        order: 1;
         margin-bottom: 0;
         font-size: 1.125rem;
         line-height: 1;
       }
 
+      .reminder-dot {
+        position: static;
+        order: 3;
+        width: 0.4375rem;
+        height: 0.4375rem;
+      }
+
       .lunar-date {
+        order: 2;
         align-self: center;
         min-height: 1rem;
         font-size: 0.6875rem;
         line-height: 1.1;
-      }
-
-      .reminder-dot {
-        top: 0.375rem;
-        right: 0.375rem;
-        width: 0.4375rem;
-        height: 0.4375rem;
       }
     }
   }
