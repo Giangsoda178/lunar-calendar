@@ -33,6 +33,8 @@ export {
 // Lunar calendar utilities
 export {
   type CalendarCell,
+  addLunarMonthsToLocalDate,
+  advanceLunarMonthOne,
   MONTH_NAMES,
   WEEKDAY_NAMES,
   buildCalendarGrid,

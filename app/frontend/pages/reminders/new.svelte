@@ -1,0 +1,26 @@
+<script lang="ts">
+  import CalendarLayout from "@/layouts/CalendarLayout.svelte"
+  import ReminderForm from "./ReminderForm.svelte"
+  import { remindersPath } from "@/routes"
+  import type { Reminder } from "@/types/reminder"
+
+  interface Props {
+    reminder: Reminder
+  }
+
+  let { reminder }: Props = $props()
+</script>
+
+<svelte:head>
+  <title>New Reminder</title>
+</svelte:head>
+
+<CalendarLayout>
+  <h1 class="mb-4 text-2xl font-semibold">New Reminder</h1>
+  <ReminderForm
+    {reminder}
+    action={remindersPath()}
+    method="post"
+    submitLabel="Create Reminder"
+  />
+</CalendarLayout>

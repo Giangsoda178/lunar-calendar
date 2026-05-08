@@ -10,6 +10,7 @@
 #  last_name       :string
 #  password_digest :string
 #  role            :string           default("user"), not null
+#  timezone        :string           default("Asia/Ho_Chi_Minh"), not null
 #  two_fa_enabled  :boolean
 #  two_fa_secret   :string
 #  created_at      :datetime         not null
@@ -29,5 +30,6 @@ FactoryBot.define do
     two_fa_enabled { false }
     two_fa_secret { nil }
     role { "user" }
+    timezone { "Asia/Ho_Chi_Minh" }
   end
 end

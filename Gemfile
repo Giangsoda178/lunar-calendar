@@ -58,6 +58,9 @@ gem "js-routes"
 # Agnostic pagination in plain Ruby - https://ddnexus.github.io/pagy/
 gem "pagy", "~> 43.2.2"
 
+# Soft-delete via a `deleted_at` timestamp [https://github.com/jhawthorn/discard]
+gem "discard", "~> 1.3"
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"

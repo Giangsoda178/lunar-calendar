@@ -6,33 +6,23 @@
   import DateInfoPanel from "@/components/calendar/DateInfoPanel.svelte"
   import Button from "@/components/ui/Button.svelte"
   import { dateToISO, isoToDate } from "@/utils"
-
-  type Reminder = {
-    id: number
-    user_id: string
-    title: string
-    start: string
-    end: string
-    notes?: string | null
-    alert: boolean
-    alert_minutes?: number | null
-    is_lunar: boolean
-    repeat: boolean
-    repeat_period?: "daily" | "weekly" | "monthly" | "yearly" | number | null
-    created_at?: string
-    updated_at?: string
-  }
+  import { newReminderPath } from "@/routes"
+  import type { Reminder, Occurrence } from "@/types/reminder"
 
   interface Props {
-    reminder_dates: string[]
     today: string
     reminders: Reminder[]
+    occurrences: Occurrence[]
   }
 
-  let { reminder_dates, today, reminders }: Props = $props()
+  let { today, reminders, occurrences }: Props = $props()
 
-  // Convert array to SvelteSet for O(1) lookup with reactivity
-  const reminderDatesSet = $derived(new SvelteSet(reminder_dates))
+  // Build the set of ISO dates that have at least one reminder occurrence.
+  // Derived straight from the server-computed `occurrences` array so that
+  // repeating reminders show a dot on every firing date, not just `start`.
+  const reminderDatesSet = $derived.by(() => {
+    return new SvelteSet(occurrences.map((o) => o.date))
+  })
 
   // State owned by page
   let selectedISO = $state<string | null>(today)
@@ -72,6 +62,7 @@
       <DateInfoPanel
         {selectedISO}
         {reminders}
+        {occurrences}
         onPrevDay={prevDay}
         onNextDay={nextDay}
       />
@@ -87,7 +78,7 @@
         disabled={isSaving}
         variant="primary"
         size="lg-icon"
-        href="/reminders/new"
+        href={newReminderPath()}
         aria-label="Add Reminder"
       >
         +
