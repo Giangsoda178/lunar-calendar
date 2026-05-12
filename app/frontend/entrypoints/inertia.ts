@@ -4,6 +4,24 @@ import { mount } from "svelte"
 import PersistentLayout from "@/layouts/PersistentLayout.svelte"
 import { initializeTheme } from "@/runes/use-appearance.svelte"
 
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) return
+
+  const register = () =>
+    navigator.serviceWorker.register("/service-worker", { scope: "/" }).catch((error) => {
+      if (import.meta.env.DEV) {
+        console.error("Service worker registration failed:", error)
+      }
+    })
+
+  if (document.readyState === "complete") {
+    void register()
+    return
+  }
+
+  window.addEventListener("load", () => void register(), { once: true })
+}
+
 createInertiaApp({
   // Disable progress bar
   //
@@ -56,3 +74,4 @@ createInertiaApp({
 
 // Initialize theme (appearance mode + variant)
 initializeTheme()
+registerServiceWorker()
