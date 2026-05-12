@@ -80,12 +80,12 @@
     <ChevronLeft />
   </button>
   <div class="date-info-wrapper">
-    <div class="date-info">
+    <div class="date-info solar-info">
       <span class="type">Solar</span>
       <span class="date">{selectedSolarDate ?? ""}</span>
       <span class="month-year">{selectedSolarMonthYear ?? ""}</span>
     </div>
-    <div class="date-info">
+    <div class="date-info lunar-info">
       <span class="type">Lunar</span>
       <span class="date">{selectedLunarDate ?? ""}</span>
       <span class="month-year">{selectedLunarMonthYear ?? ""}</span>
@@ -96,92 +96,118 @@
     <ChevronRight />
   </button>
 </div>
-<ul class="reminders-container">
-  {#each selectedReminders as reminder}
-    <li class="reminder">
-      <span class="time">
-        {formatDisplayTime(reminder.start)}{#if reminder.end}
-          {" "}- {formatDisplayTime(reminder.end)}{/if}
-      </span>
-      <span class="title">
-        {reminder.title}
-      </span>
-      <span class="notes">
-        {reminder.notes}
-      </span>
-      <span class="actions">
-        <a
-          href={editReminderPath(reminder.id)}
-          use:inertia
-          class="action"
-          aria-label="Edit reminder"
-        >
-          <Pencil size="18" />
-        </a>
-        <button
-          type="button"
-          class="action"
-          aria-label="Delete reminder"
-          onclick={() => deleteReminder(reminder.id)}
-        >
-          <Trash2 size="18" />
-        </button>
-      </span>
-    </li>
-  {/each}
-</ul>
+{#if selectedReminders.length > 0}
+  <ul class="reminders-container">
+    {#each selectedReminders as reminder}
+      <li class="reminder">
+        <span class="time">
+          {formatDisplayTime(reminder.start)}{#if reminder.end}
+            {" "}- {formatDisplayTime(reminder.end)}{/if}
+        </span>
+        <span class="title">
+          {reminder.title}
+        </span>
+        {#if reminder.notes}
+          <span class="notes">
+            {reminder.notes}
+          </span>
+        {/if}
+        <span class="actions">
+          <a
+            href={editReminderPath(reminder.id)}
+            use:inertia
+            class="action"
+            aria-label="Edit reminder"
+          >
+            <Pencil size="18" />
+          </a>
+          <button
+            type="button"
+            class="action"
+            aria-label="Delete reminder"
+            onclick={() => deleteReminder(reminder.id)}
+          >
+            <Trash2 size="18" />
+          </button>
+        </span>
+      </li>
+    {/each}
+  </ul>
+{:else}
+  <p class="empty-reminders">No reminders for this day.</p>
+{/if}
 
 <style lang="postcss">
   .date-info-container {
-    max-width: fit-content;
+    width: min(100%, 1232px);
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 8rem;
+    gap: clamp(0.75rem, 5vw, 8rem);
     margin: 1rem auto;
+    padding-inline: 0.25rem;
 
     .date-info-wrapper {
+      min-width: 0;
+      flex: 1;
       display: flex;
-      gap: 6rem;
+      justify-content: center;
+      gap: clamp(0.75rem, 4vw, 6rem);
 
       .date-info {
-        min-width: 400px;
+        min-width: min(18rem, 100%);
+        flex: 1 1 0;
         display: flex;
         flex-direction: column;
         align-items: center;
+        border-radius: 1rem;
+        padding: 1rem;
+        background: var(--color-card);
 
         .type {
-          font-size: 2rem;
+          font-size: clamp(0.875rem, 2.4vw, 2rem);
           font-weight: 500;
         }
 
         .date {
-          font-size: 5rem;
+          font-size: clamp(3rem, 8vw, 5rem);
           font-weight: 700;
+          line-height: 1;
         }
 
         .month-year {
-          font-size: 2rem;
+          font-size: clamp(1rem, 2.4vw, 2rem);
           font-weight: 500;
+          text-align: center;
         }
 
         .canchi {
-          font-size: 1.2rem;
+          font-size: clamp(0.75rem, 1.8vw, 1.2rem);
           margin-top: 1rem;
+          text-align: center;
         }
       }
+    }
+
+    > button {
+      min-width: 2.75rem;
+      min-height: 2.75rem;
+      border-radius: 999px;
     }
   }
 
   .reminders-container {
-    max-width: 1232px;
+    width: min(100%, 1232px);
     margin: 0 auto;
+    padding: 0;
+    list-style: none;
 
     .reminder {
       display: grid;
-      grid-template-columns: auto 1fr 2fr auto;
+      grid-template-columns: minmax(7rem, auto) 1fr minmax(0, 2fr) auto;
+      gap: 0.5rem;
       align-items: center;
-      padding: 0.5rem 0;
+      padding: 0.75rem 0;
       border-bottom: 1px solid var(--color-border);
       font-size: 1.1rem;
       transition: background 0.12s ease;
@@ -196,7 +222,11 @@
         padding: 0.25rem 1rem;
         overflow: hidden;
         text-overflow: ellipsis;
-        white-space: wrap;
+        white-space: normal;
+      }
+
+      .time {
+        color: var(--color-muted-foreground);
       }
 
       .title {
@@ -225,11 +255,114 @@
           background: transparent;
           border: none;
           cursor: pointer;
-          transition: background 0.12s ease, color 0.12s ease;
+          transition:
+            background 0.12s ease,
+            color 0.12s ease;
 
           &:hover {
             background: var(--color-sidebar-accent);
             color: var(--color-foreground);
+          }
+        }
+      }
+    }
+  }
+
+  .empty-reminders {
+    width: min(100%, 1232px);
+    margin: 0 auto;
+    border: 1px dashed var(--color-border);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    color: var(--color-muted-foreground);
+    text-align: center;
+  }
+
+  @media (max-width: 767px) {
+    .date-info-container {
+      gap: 0.5rem;
+      align-items: stretch;
+      margin-block: 0.5rem 1rem;
+
+      .date-info-wrapper {
+        gap: 0.5rem;
+
+        .date-info {
+          min-width: 0;
+          padding: 0.875rem 0.5rem;
+
+          .type {
+            font-size: 0.8125rem;
+          }
+
+          .date {
+            font-size: 2.75rem;
+          }
+
+          .month-year {
+            font-size: 0.875rem;
+          }
+
+          .canchi {
+            display: none;
+          }
+        }
+      }
+
+      > button {
+        align-self: center;
+        min-width: 2.5rem;
+        min-height: 2.5rem;
+        padding: 0.5rem;
+      }
+    }
+
+    .reminders-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+
+      .reminder {
+        grid-template-columns: 1fr auto;
+        grid-template-areas:
+          "time actions"
+          "title actions"
+          "notes notes";
+        gap: 0.25rem 0.75rem;
+        border: 1px solid var(--color-border);
+        border-radius: 0.875rem;
+        padding: 0.875rem;
+        background: var(--color-card);
+        font-size: 1rem;
+
+        .time,
+        .title,
+        .notes,
+        .actions {
+          padding: 0;
+        }
+
+        .time {
+          grid-area: time;
+          font-size: 0.875rem;
+        }
+
+        .title {
+          grid-area: title;
+        }
+
+        .notes {
+          grid-area: notes;
+          color: var(--color-muted-foreground);
+        }
+
+        .actions {
+          grid-area: actions;
+          align-self: center;
+
+          .action {
+            width: 2.5rem;
+            height: 2.5rem;
           }
         }
       }
