@@ -7,7 +7,10 @@ class ApplicationController < ActionController::Base
   private
 
   def authenticate
-    redirect_to sign_in_path unless perform_authentication
+    return if perform_authentication
+    return dev_auto_sign_in if Rails.env.local?
+
+    redirect_to sign_in_path
   end
 
   def require_no_authentication
@@ -18,7 +21,22 @@ class ApplicationController < ActionController::Base
   end
 
   def perform_authentication
-    nil
+    Current.session.present?
+  end
+
+  def dev_auto_sign_in
+    user = User.first_or_create!(
+      email: "dev@example.com",
+      first_name: "Dev",
+      last_name: "User",
+      password: "Password123!"
+    )
+    Current.session = DevStubSession.new(user)
+  end
+
+  DevStubSession = Struct.new(:user) do
+    def id = "dev-session"
+    def as_json(...) = {id: id}
   end
 
   def set_current_request_details

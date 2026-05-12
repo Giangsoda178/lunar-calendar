@@ -1,4 +1,4 @@
-# Moon Calendar
+# Lunar Calendar
 
 A modern full-stack starter application combining **Ruby on Rails 8.1** backend with **Svelte 5** frontend using **Inertia.js**.
 

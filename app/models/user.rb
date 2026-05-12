@@ -10,6 +10,7 @@
 #  last_name       :string
 #  password_digest :string
 #  role            :string           default("user"), not null
+#  timezone        :string           default("Asia/Ho_Chi_Minh"), not null
 #  two_fa_enabled  :boolean
 #  two_fa_secret   :string
 #  created_at      :datetime         not null
@@ -22,6 +23,9 @@
 class User < ApplicationRecord
   has_secure_password
   include IdGenerator
+
+  has_many :reminders
+  before_destroy { reminders.discard_all }
 
   attribute :role, :string
   enum :role, {admin: "admin", user: "user"}
@@ -38,11 +42,30 @@ class User < ApplicationRecord
   validates :password, length: {minimum: 8}, allow_nil: true
   validate :password_complexity, if: -> { password.present? }
 
+  # Reject unknown strings so `Time.use_zone(user.timezone)` cannot raise mid-request.
+  validate :timezone_must_be_recognized
+
   def full_name
     [first_name, last_name].compact.join(" ")
   end
 
   private
+
+  def timezone_must_be_recognized
+    return if timezone.blank?
+    return if recognized_time_zone?(timezone)
+
+    errors.add(:timezone, :inclusion)
+  end
+
+  def recognized_time_zone?(tz)
+    return true if ActiveSupport::TimeZone[tz]
+
+    TZInfo::Timezone.get(tz)
+    true
+  rescue TZInfo::InvalidTimezoneIdentifier
+    false
+  end
 
   def password_complexity
     return if password.blank?

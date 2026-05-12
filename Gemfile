@@ -20,7 +20,7 @@ gem "nanoid"
 gem "amazing_print"
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
-gem "bcrypt", "~> 3.1.7"
+gem "bcrypt", "~> 3.1.21"
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
@@ -46,7 +46,7 @@ gem "thruster", require: false
 gem "vite_rails", "~> 3.0"
 
 # The Rails adapter for Inertia.js [https://inertia-rails.dev]
-gem "inertia_rails", "~> 3.15"
+gem "inertia_rails", "~> 3.16"
 
 # An authentication system generator for Rails applications
 # we leave gem here to watch for security updates
@@ -57,6 +57,9 @@ gem "js-routes"
 
 # Agnostic pagination in plain Ruby - https://ddnexus.github.io/pagy/
 gem "pagy", "~> 43.2.2"
+
+# Soft-delete via a `deleted_at` timestamp [https://github.com/jhawthorn/discard]
+gem "discard", "~> 1.3"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

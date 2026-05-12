@@ -3,6 +3,7 @@
   import MoonLogo from "@/assets/images/moon-logo.png"
   import type { Snippet } from "svelte"
   import SidebarLayout from "@/layouts/SidebarLayout.svelte"
+  import type { SidebarMenu } from "@/components/ui/Sidebar.svelte"
   import { rootPath, calendarIndexPath } from "@/routes"
 
   type Props = {
@@ -40,11 +41,11 @@
         },
       ],
     },
-  ]
+  ] satisfies SidebarMenu
 </script>
 
 <SidebarLayout
-  sideBarId="calendar-sidebar"
+  sidebarId="calendar-sidebar"
   {sidebarMenu}
   sidebarClass="border-r"
   showThemeVariants
@@ -68,7 +69,7 @@
   <div class="space-y-6">
     {#if title}
       <header>
-        <h1 class="text-3xl font-bold">{title}</h1>
+        <h1 class="text-2xl font-bold sm:text-3xl">{title}</h1>
         {#if description}
           <p class="text-muted-foreground mt-1">{description}</p>
         {/if}
