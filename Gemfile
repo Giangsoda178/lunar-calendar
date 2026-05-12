@@ -56,7 +56,7 @@ gem "authentication-zero"
 gem "js-routes"
 
 # Agnostic pagination in plain Ruby - https://ddnexus.github.io/pagy/
-gem "pagy", "~> 43.2.2"
+gem "pagy", "~> 43.2.8"
 
 # Soft-delete via a `deleted_at` timestamp [https://github.com/jhawthorn/discard]
 gem "discard", "~> 1.3"
