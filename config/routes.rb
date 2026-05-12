@@ -46,6 +46,9 @@ Rails.application.routes.draw do
     get "", to: "calendar#index", as: :index
   end
 
+  get "reminders/sync", to: "reminder_sync#show", as: :reminder_sync
+  post "reminders/sync", to: "reminder_sync#create"
+
   resources :reminders
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

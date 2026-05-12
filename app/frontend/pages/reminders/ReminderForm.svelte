@@ -1,9 +1,13 @@
 <script lang="ts">
-  import type { FormComponentSlotProps } from "@inertiajs/core"
-  import { Form, page } from "@inertiajs/svelte"
+  import { page, router } from "@inertiajs/svelte"
   import { untrack } from "svelte"
   import { LunarCalendar } from "@forvn/vn-lunar-calendar"
 
+  import { useNetworkStatus } from "@/offline/network.svelte"
+  import { useReminderStore } from "@/offline/reminder-store.svelte"
+  import { flushReminderQueue } from "@/offline/sync"
+  import type { LocalReminder, ReminderMutationAttributes } from "@/offline/types"
+  import { calendarIndexPath } from "@/routes"
   import Field from "@/components/ui/Field.svelte"
   import { addLunarMonthsToLocalDate } from "@/utils/lunar-calendar"
   import Input from "@/components/ui/Input.svelte"
@@ -11,18 +15,21 @@
   import Label from "@/components/ui/Label.svelte"
   import Switch from "@/components/ui/Switch.svelte"
   import Button from "@/components/ui/Button.svelte"
-  import type { Reminder } from "@/types/reminder"
+  import type { Reminder, RepeatPeriod } from "@/types/reminder"
 
   type Method = "post" | "patch"
 
   interface Props {
     reminder: Reminder
-    action: string
     method: Method
     submitLabel: string
   }
 
-  let { reminder, action, method, submitLabel }: Props = $props()
+  let { reminder, method, submitLabel }: Props = $props()
+  const network = useNetworkStatus()
+  const reminderStore = useReminderStore()
+  let processing = $state(false)
+  let errors = $state<Record<string, string[]>>({})
 
   // Normalize a Rails-serialized datetime (ISO with offset, or undefined) into
   // the `YYYY-MM-DDTHH:MM` shape that `<input type="datetime-local">` requires.
@@ -43,8 +50,6 @@
     const pad = (n: number) => String(n).padStart(2, "0")
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
   }
-
-  let errors = $derived($page.props.errors || {})
 
   // Local UI state for conditional field visibility. The form reads input
   // values from the DOM at submit time — these only drive show/hide and
@@ -125,11 +130,176 @@
     if (endsMode === "after-n") return computedEndsAt()
     return ""
   })
+
+  function operationId() {
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+      return crypto.randomUUID()
+    }
+    return `${Date.now()}-${Math.random().toString(36).slice(2)}`
+  }
+
+  function temporaryReminderId() {
+    return -Date.now()
+  }
+
+  function toIsoDateTime(value: string | null | undefined) {
+    if (!value) return null
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return null
+    return date.toISOString()
+  }
+
+  function toBool(value: FormDataEntryValue | null) {
+    return String(value ?? "0") === "1"
+  }
+
+  function parseAttributes(formData: FormData): ReminderMutationAttributes {
+    const start = toIsoDateTime(String(formData.get("reminder[start]") ?? ""))
+    const endValue = toIsoDateTime(String(formData.get("reminder[end]") ?? ""))
+    const repeatEndsAtValue = toIsoDateTime(
+      String(formData.get("reminder[repeat_ends_at]") ?? ""),
+    )
+    const alert = toBool(formData.get("reminder[alert]"))
+    const repeat = toBool(formData.get("reminder[repeat]"))
+
+    const repeatPeriodValue = String(formData.get("reminder[repeat_period]") ?? "")
+    const repeatPeriod = (["daily", "weekly", "monthly", "yearly"].includes(repeatPeriodValue)
+      ? repeatPeriodValue
+      : null) as RepeatPeriod | null
+
+    return {
+      title: String(formData.get("reminder[title]") ?? "").trim(),
+      notes: String(formData.get("reminder[notes]") ?? "").trim() || null,
+      start: start ?? "",
+      end: endValue,
+      is_lunar: toBool(formData.get("reminder[is_lunar]")),
+      alert,
+      alert_minutes: alert
+        ? Number(formData.get("reminder[alert_minutes]") ?? 0)
+        : null,
+      repeat,
+      repeat_period: repeat ? repeatPeriod : null,
+      repeat_ends_at: repeat ? repeatEndsAtValue : null,
+    }
+  }
+
+  async function handleSubmit(event: SubmitEvent) {
+    event.preventDefault()
+    if (processing) return
+
+    errors = {}
+    processing = true
+
+    try {
+      const auth = $page.props.auth as { user?: { id?: string | number } } | undefined
+      const currentUserId = auth?.user?.id == null ? null : String(auth.user.id)
+      if (!currentUserId) return
+
+      await reminderStore.initialize(currentUserId, [])
+
+      const formData = new FormData(event.currentTarget as HTMLFormElement)
+      const attributes = parseAttributes(formData)
+      const opId = operationId()
+      const now = new Date().toISOString()
+
+      if (method === "post") {
+        const localId = temporaryReminderId()
+        const localReminder: LocalReminder = {
+          id: localId,
+          local_id: String(localId),
+          user_id: currentUserId,
+          title: attributes.title,
+          notes: attributes.notes,
+          start: attributes.start,
+          end: attributes.end,
+          alert: attributes.alert,
+          alert_minutes: attributes.alert_minutes,
+          is_lunar: attributes.is_lunar,
+          repeat: attributes.repeat,
+          repeat_period: attributes.repeat_period,
+          repeat_ends_at: attributes.repeat_ends_at,
+          created_at: now,
+          updated_at: now,
+          sync_status: "pending_create",
+          base_updated_at: now,
+          deleted_at: null,
+          sync_errors: null,
+        }
+
+        await reminderStore.upsertLocalReminder(localReminder)
+        await reminderStore.enqueueOperation({
+          client_operation_id: opId,
+          user_id: currentUserId,
+          operation: "create",
+          client_record_id: String(localId),
+          attributes,
+          created_at: now,
+        })
+      } else {
+        const localReminder: LocalReminder = {
+          ...reminder,
+          ...attributes,
+          user_id: currentUserId,
+          sync_status: "pending_update",
+          base_updated_at: reminder.updated_at ?? now,
+          deleted_at: null,
+          sync_errors: null,
+        }
+
+        await reminderStore.upsertLocalReminder(localReminder)
+        await reminderStore.enqueueOperation({
+          client_operation_id: opId,
+          user_id: currentUserId,
+          operation: "update",
+          server_id: reminder.id,
+          base_updated_at: reminder.updated_at ?? now,
+          attributes,
+          created_at: now,
+        })
+      }
+
+      if (!network.isOnline) {
+        router.visit(calendarIndexPath())
+        return
+      }
+
+      const month = attributes.start ? `${attributes.start.slice(0, 7)}-01` : undefined
+      const result = await flushReminderQueue({
+        userId: currentUserId,
+        operations: [...reminderStore.operations],
+        month,
+      })
+      await Promise.all(result.applied.map((id) => reminderStore.removeOperation(id)))
+
+      if (result.reminders.length > 0) {
+        await reminderStore.replaceFromServer(currentUserId, result.reminders)
+      }
+
+      const failedOperation = result.failed.find(
+        (failure) => failure.client_operation_id === opId,
+      )
+      const conflictOperation = result.conflicts.includes(opId)
+      if (failedOperation?.errors) {
+        errors = failedOperation.errors
+        return
+      }
+      if (conflictOperation) {
+        errors = { base: ["This reminder changed on another device. Please reload and retry."] }
+        return
+      }
+
+      router.visit(calendarIndexPath())
+    } finally {
+      processing = false
+    }
+  }
 </script>
 
-<Form {action} {method}>
-  {#snippet children({ processing }: FormComponentSlotProps)}
-    <div class="w-full max-w-2xl space-y-5">
+<form onsubmit={handleSubmit}>
+  <div class="w-full max-w-2xl space-y-5">
+      {#if errors.base}
+        <p class="text-sm text-destructive">{errors.base.join(", ")}</p>
+      {/if}
       <Field label="Title*" name="title" error={errors.title}>
         <Input
           name="reminder[title]"
@@ -264,6 +434,5 @@
           {processing ? "Saving..." : submitLabel}
         </Button>
       </div>
-    </div>
-  {/snippet}
-</Form>
+  </div>
+</form>
