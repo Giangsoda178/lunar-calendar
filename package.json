@@ -60,6 +60,7 @@
     "d3-scale": "^4.0.2",
     "d3-scale-chromatic": "^3.1.0",
     "d3-shape": "^3.2.0",
+    "idb": "^8.0.3",
     "rollup": "^4.53.3",
     "tailwindcss": "^4.1.17"
   },

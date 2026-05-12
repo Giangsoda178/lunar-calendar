@@ -1,10 +1,14 @@
 <script lang="ts">
+  import { page } from "@inertiajs/svelte"
   import { SvelteSet } from "svelte/reactivity"
 
   import CalendarLayout from "@/layouts/CalendarLayout.svelte"
   import LunarCalendarGrid from "@/components/calendar/LunarCalendarGrid.svelte"
   import DateInfoPanel from "@/components/calendar/DateInfoPanel.svelte"
   import Button from "@/components/ui/Button.svelte"
+  import { expandOfflineOccurrences } from "@/offline/occurrences"
+  import { useNetworkStatus } from "@/offline/network.svelte"
+  import { useReminderStore } from "@/offline/reminder-store.svelte"
   import { dateToISO, isoToDate } from "@/utils"
   import { newReminderPath } from "@/routes"
   import type { Reminder, Occurrence } from "@/types/reminder"
@@ -16,16 +20,59 @@
   }
 
   let { today, reminders, occurrences }: Props = $props()
+  const network = useNetworkStatus()
+  const reminderStore = useReminderStore()
 
-  // Build the set of ISO dates that have at least one reminder occurrence.
-  // Derived straight from the server-computed `occurrences` array so that
-  // repeating reminders show a dot on every firing date, not just `start`.
-  const reminderDatesSet = $derived.by(() => {
-    return new SvelteSet(occurrences.map((o) => o.date))
+  const currentUserId = $derived.by(() => {
+    const auth = $page.props.auth as { user?: { id?: string | number } } | undefined
+    const userId = auth?.user?.id
+    return userId == null ? null : String(userId)
   })
 
-  // State owned by page
-  let selectedISO = $state<string | null>(today)
+  let selectedISO = $state<string | null>(null)
+  let seededUserId = $state<string | null>(null)
+  let lastSyncedSnapshot = $state<string>("")
+  const offlineRange = $derived.by(() => {
+    const baseDate = selectedISO ? isoToDate(selectedISO) : isoToDate(today)
+    return {
+      rangeStart: new Date(baseDate.getFullYear(), baseDate.getMonth() - 1, 1),
+      rangeEnd: new Date(baseDate.getFullYear(), baseDate.getMonth() + 2, 0),
+    }
+  })
+
+  let renderedReminders = $derived.by(() => {
+    if (
+      network.isOnline ||
+      !currentUserId ||
+      !reminderStore.initialized ||
+      reminderStore.userId !== currentUserId
+    ) {
+      return reminders
+    }
+
+    return reminderStore.reminders.filter((reminder) => !reminder.deleted_at) as Reminder[]
+  })
+
+  let renderedOccurrences = $derived.by(() => {
+    if (
+      network.isOnline ||
+      !currentUserId ||
+      !reminderStore.initialized ||
+      reminderStore.userId !== currentUserId
+    ) {
+      return occurrences
+    }
+
+    return expandOfflineOccurrences({
+      reminders: reminderStore.reminders,
+      rangeStart: offlineRange.rangeStart,
+      rangeEnd: offlineRange.rangeEnd,
+    })
+  })
+
+  const reminderDatesSet = $derived.by(() => {
+    return new SvelteSet(renderedOccurrences.map((occurrence) => occurrence.date))
+  })
 
   let isSaving = false
 
@@ -50,6 +97,36 @@
   function nextDay() {
     offsetSelectedBy(1)
   }
+
+  const reminderSnapshot = $derived.by(() => {
+    return reminders
+      .map((reminder) => `${reminder.id}:${reminder.updated_at ?? reminder.start}`)
+      .sort()
+      .join("|")
+  })
+
+  $effect(() => {
+    if (selectedISO === null) {
+      selectedISO = today
+    }
+  })
+
+  $effect(() => {
+    if (!currentUserId) return
+    if (seededUserId === currentUserId) return
+
+    seededUserId = currentUserId
+    void reminderStore.initialize(currentUserId, reminders)
+  })
+
+  $effect(() => {
+    if (!currentUserId || !network.isOnline) return
+    const nextSnapshot = `${currentUserId}:${reminderSnapshot}`
+    if (lastSyncedSnapshot === nextSnapshot) return
+
+    lastSyncedSnapshot = nextSnapshot
+    void reminderStore.replaceFromServer(currentUserId, reminders)
+  })
 </script>
 
 <svelte:head>
@@ -59,10 +136,17 @@
 <CalendarLayout>
   <div class="flex min-w-0 flex-col gap-4 md:gap-6">
     <main class="main-content relative">
+      <p class="mb-2 text-sm text-muted-foreground">
+        {#if network.isOnline}
+          Online
+        {:else}
+          Offline mode
+        {/if}
+      </p>
       <DateInfoPanel
         {selectedISO}
-        {reminders}
-        {occurrences}
+        reminders={renderedReminders}
+        occurrences={renderedOccurrences}
         onPrevDay={prevDay}
         onNextDay={nextDay}
       />
