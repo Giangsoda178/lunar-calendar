@@ -9,6 +9,7 @@
   import { expandOfflineOccurrences } from "@/offline/occurrences"
   import { useNetworkStatus } from "@/offline/network.svelte"
   import { useReminderStore } from "@/offline/reminder-store.svelte"
+  import { flushReminderQueue } from "@/offline/sync"
   import { dateToISO, isoToDate } from "@/utils"
   import { newReminderPath } from "@/routes"
   import type { Reminder, Occurrence } from "@/types/reminder"
@@ -32,6 +33,7 @@
   let selectedISO = $state<string | null>(null)
   let seededUserId = $state<string | null>(null)
   let lastSyncedSnapshot = $state<string>("")
+  let syncState = $state<"idle" | "syncing" | "failed">("idle")
   const offlineRange = $derived.by(() => {
     const baseDate = selectedISO ? isoToDate(selectedISO) : isoToDate(today)
     return {
@@ -127,6 +129,39 @@
     lastSyncedSnapshot = nextSnapshot
     void reminderStore.replaceFromServer(currentUserId, reminders)
   })
+
+  $effect(() => {
+    if (
+      !network.isOnline ||
+      !currentUserId ||
+      !reminderStore.initialized ||
+      !reminderStore.hasPendingOperations
+    ) {
+      return
+    }
+
+    syncState = "syncing"
+    const operations = [...reminderStore.operations]
+    const rangeStart = dateToISO(offlineRange.rangeStart)
+    const rangeEnd = dateToISO(offlineRange.rangeEnd)
+
+    void flushReminderQueue({
+      userId: currentUserId,
+      operations,
+      rangeStart,
+      rangeEnd,
+    })
+      .then(async (result) => {
+        await Promise.all(result.applied.map((id) => reminderStore.removeOperation(id)))
+        if (result.reminders.length > 0) {
+          await reminderStore.replaceFromServer(currentUserId, result.reminders)
+        }
+        syncState = result.failed.length > 0 || result.conflicts.length > 0 ? "failed" : "idle"
+      })
+      .catch(() => {
+        syncState = "failed"
+      })
+  })
 </script>
 
 <svelte:head>
@@ -137,10 +172,16 @@
   <div class="flex min-w-0 flex-col gap-4 md:gap-6">
     <main class="main-content relative">
       <p class="mb-2 text-sm text-muted-foreground">
-        {#if network.isOnline}
-          Online
-        {:else}
+        {#if !network.isOnline}
           Offline mode
+        {:else if syncState === "syncing"}
+          Syncing changes...
+        {:else if syncState === "failed"}
+          Sync failed - retry when online
+        {:else if reminderStore.hasPendingOperations}
+          Unsynced changes
+        {:else}
+          Online
         {/if}
       </p>
       <DateInfoPanel
