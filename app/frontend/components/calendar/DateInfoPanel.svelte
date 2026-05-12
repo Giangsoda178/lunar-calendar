@@ -1,10 +1,13 @@
 <script lang="ts">
   import { LunarCalendar } from "@forvn/vn-lunar-calendar"
   import { ChevronLeft, ChevronRight, Pencil, Trash2 } from "@lucide/svelte"
-  import { inertia, router } from "@inertiajs/svelte"
+  import { inertia, page } from "@inertiajs/svelte"
 
+  import { useNetworkStatus } from "@/offline/network.svelte"
+  import { useReminderStore } from "@/offline/reminder-store.svelte"
+  import { flushReminderQueue } from "@/offline/sync"
   import { MONTH_NAMES, isoToDate, formatDisplayTime } from "@/utils"
-  import { editReminderPath, reminderPath } from "@/routes"
+  import { editReminderPath } from "@/routes"
   import type { Reminder, Occurrence } from "@/types/reminder"
 
   interface Props {
@@ -17,6 +20,8 @@
 
   let { selectedISO, reminders, occurrences, onPrevDay, onNextDay }: Props =
     $props()
+  const network = useNetworkStatus()
+  const reminderStore = useReminderStore()
 
   // Index reminders by id so we can resolve an Occurrence to its source
   // record in O(1) while rendering.
@@ -69,9 +74,52 @@
       .filter((r): r is Reminder => r !== undefined)
   })
 
-  function deleteReminder(id: number) {
+  function operationId() {
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+      return crypto.randomUUID()
+    }
+    return `${Date.now()}-${Math.random().toString(36).slice(2)}`
+  }
+
+  function selectedMonth() {
+    if (!selectedISO) return undefined
+    return `${selectedISO.slice(0, 7)}-01`
+  }
+
+  async function deleteReminder(id: number) {
     if (!confirm("Delete this reminder?")) return
-    router.delete(reminderPath(id), { preserveScroll: true })
+    const auth = $page.props.auth as { user?: { id?: string | number } } | undefined
+    const currentUserId = auth?.user?.id == null ? null : String(auth.user.id)
+    if (!currentUserId) return
+
+    if (id <= 0) {
+      await reminderStore.removeOperationsForRecord(id)
+      await reminderStore.removeLocalReminder(id)
+      return
+    }
+
+    await reminderStore.removeLocalReminder(id)
+    const operation = {
+      client_operation_id: operationId(),
+      user_id: currentUserId,
+      operation: "delete" as const,
+      server_id: id,
+      base_updated_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+    }
+    await reminderStore.enqueueOperation(operation)
+
+    if (!network.isOnline) return
+
+    const result = await flushReminderQueue({
+      userId: currentUserId,
+      operations: [...reminderStore.operations],
+      month: selectedMonth(),
+    })
+    await Promise.all(result.applied.map((appliedId) => reminderStore.removeOperation(appliedId)))
+    if (result.reminders.length > 0) {
+      await reminderStore.replaceFromServer(currentUserId, result.reminders)
+    }
   }
 </script>
 
@@ -113,19 +161,21 @@
           </span>
         {/if}
         <span class="actions">
-          <a
-            href={editReminderPath(reminder.id)}
-            use:inertia
-            class="action"
-            aria-label="Edit reminder"
-          >
-            <Pencil size="18" />
-          </a>
+          {#if reminder.id > 0}
+            <a
+              href={editReminderPath(reminder.id)}
+              use:inertia
+              class="action"
+              aria-label="Edit reminder"
+            >
+              <Pencil size="18" />
+            </a>
+          {/if}
           <button
             type="button"
             class="action"
             aria-label="Delete reminder"
-            onclick={() => deleteReminder(reminder.id)}
+            onclick={() => void deleteReminder(reminder.id)}
           >
             <Trash2 size="18" />
           </button>

@@ -123,6 +123,22 @@ export function useReminderStore() {
     await deleteOperation(clientOperationId)
   }
 
+  const removeOperationsForRecord = async (recordId: number | string) => {
+    const target = String(recordId)
+    const toRemove = state.operations.filter(
+      (operation) =>
+        String(operation.server_id ?? "") === target ||
+        String(operation.client_record_id ?? "") === target,
+    )
+
+    if (toRemove.length === 0) return
+
+    state.operations = state.operations.filter(
+      (operation) => !toRemove.some((item) => item.client_operation_id === operation.client_operation_id),
+    )
+    await Promise.all(toRemove.map((operation) => deleteOperation(operation.client_operation_id)))
+  }
+
   const switchUser = async (nextUserId: string) => {
     if (state.userId === nextUserId) return
     if (state.userId && state.userId !== nextUserId) {
@@ -171,6 +187,7 @@ export function useReminderStore() {
     removeLocalReminder,
     enqueueOperation,
     removeOperation,
+    removeOperationsForRecord,
     clearCurrentUser,
   }
 }
