@@ -64,8 +64,8 @@
   function goToToday() {
     const nextDate = new Date(initialDate.getFullYear(), initialDate.getMonth(), 1)
     displayDate = nextDate
-    onMonthChange?.(toMonthISO(nextDate))
     onSelect(dateToISO(initialDate))
+    onMonthChange?.(toMonthISO(nextDate))
   }
 
   function selectCell(iso: string | null) {

@@ -86,9 +86,10 @@
 
   function handleMonthChange(monthISO: string) {
     if (!network.isOnline) return
+    const selectedDay = Number((selectedISO ?? today).slice(8, 10))
     router.get(
       calendarIndexPath(),
-      {month: monthISO},
+      {month: monthISO, day: selectedDay},
       {replace: true, preserveState: true, preserveScroll: true},
     )
   }
