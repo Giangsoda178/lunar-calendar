@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { page } from "@inertiajs/svelte"
+  import { page, router } from "@inertiajs/svelte"
   import { SvelteSet } from "svelte/reactivity"
 
   import CalendarLayout from "@/layouts/CalendarLayout.svelte"
@@ -11,16 +11,17 @@
   import { useReminderStore } from "@/offline/reminder-store.svelte"
   import { flushReminderQueue } from "@/offline/sync"
   import { dateToISO, isoToDate } from "@/utils"
-  import { newReminderPath } from "@/routes"
+  import { calendarIndexPath, newReminderPath } from "@/routes"
   import type { Reminder, Occurrence } from "@/types/reminder"
 
   interface Props {
     today: string
+    focused_date: string | null
     reminders: Reminder[]
     occurrences: Occurrence[]
   }
 
-  let { today, reminders, occurrences }: Props = $props()
+  let { today, focused_date, reminders, occurrences }: Props = $props()
   const network = useNetworkStatus()
   const reminderStore = useReminderStore()
 
@@ -31,6 +32,7 @@
   })
 
   let selectedISO = $state<string | null>(null)
+  let lastFocusedDate = $state<string | null>(null)
   let seededUserId = $state<string | null>(null)
   let lastSyncedSnapshot = $state<string>("")
   let syncState = $state<"idle" | "syncing" | "failed">("idle")
@@ -82,6 +84,16 @@
     selectedISO = iso
   }
 
+  function handleMonthChange(monthISO: string) {
+    if (!network.isOnline) return
+    const selectedDay = Number((selectedISO ?? today).slice(8, 10))
+    router.get(
+      calendarIndexPath(),
+      {month: monthISO, day: selectedDay},
+      {replace: true, preserveState: true, preserveScroll: true},
+    )
+  }
+
   function offsetSelectedBy(days: number) {
     const base = selectedISO ? isoToDate(selectedISO) : isoToDate(today)
     const newDate = new Date(
@@ -109,7 +121,20 @@
 
   $effect(() => {
     if (selectedISO === null) {
-      selectedISO = today
+      selectedISO = focused_date ?? today
+    }
+  })
+
+  $effect(() => {
+    if (!focused_date) return
+    if (lastFocusedDate === focused_date) return
+    lastFocusedDate = focused_date
+    selectedISO = focused_date
+  })
+
+  $effect(() => {
+    if (!focused_date) {
+      lastFocusedDate = null
     }
   })
 
@@ -195,6 +220,7 @@
         initialDate={isoToDate(today)}
         selectedDate={selectedISO}
         onSelect={handleSelect}
+        onMonthChange={handleMonthChange}
         {reminderDatesSet}
       />
       <Button
