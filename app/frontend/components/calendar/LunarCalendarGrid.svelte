@@ -15,6 +15,7 @@
     selectedDate: string | null
     onSelect: (iso: string | null) => void
     reminderDatesSet?: Set<string>
+    onMonthChange?: (monthISO: string) => void
   }
 
   let {
@@ -22,31 +23,34 @@
     selectedDate,
     onSelect,
     reminderDatesSet,
+    onMonthChange,
   }: Props = $props()
 
-  // Internal navigation state
-  const dateInfo = $derived.by(() => {
-    if (!selectedDate) return null
-    const d = isoToDate(selectedDate)
-    return { y: d.getFullYear(), m: d.getMonth() }
-  })
+  let displayDate = $state(new Date())
+  const displayYear = $derived(displayDate.getFullYear())
+  const displayMonth = $derived(displayDate.getMonth())
+  const grid = $derived(buildCalendarGrid(displayYear, displayMonth))
 
-  let displayYear = $derived(dateInfo?.y ?? 0)
-  let displayMonth = $derived(dateInfo?.m ?? 0)
-
-  let grid = $derived.by(() => {
-    if (!dateInfo) return []
-    return buildCalendarGrid(dateInfo.y, dateInfo.m)
-  })
-
-  // Today for highlight
   const todayISO = $derived(dateToISO(initialDate))
 
+  $effect(() => {
+    if (selectedDate) {
+      const selected = isoToDate(selectedDate)
+      displayDate = new Date(selected.getFullYear(), selected.getMonth(), 1)
+      return
+    }
+
+    displayDate = new Date(initialDate.getFullYear(), initialDate.getMonth(), 1)
+  })
+
+  function toMonthISO(date: Date): string {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-01`
+  }
+
   function navigateMonth(offset: number) {
-    const d = new Date(displayYear, displayMonth + offset, 1)
-    displayYear = d.getFullYear()
-    displayMonth = d.getMonth()
-    grid = buildCalendarGrid(displayYear, displayMonth)
+    const nextDate = new Date(displayDate.getFullYear(), displayDate.getMonth() + offset, 1)
+    displayDate = nextDate
+    onMonthChange?.(toMonthISO(nextDate))
   }
 
   function prevMonth() {
@@ -58,9 +62,9 @@
   }
 
   function goToToday() {
-    displayYear = initialDate.getFullYear()
-    displayMonth = initialDate.getMonth()
-    grid = buildCalendarGrid(displayYear, displayMonth)
+    const nextDate = new Date(initialDate.getFullYear(), initialDate.getMonth(), 1)
+    displayDate = nextDate
+    onMonthChange?.(toMonthISO(nextDate))
     onSelect(dateToISO(initialDate))
   }
 
