@@ -1,5 +1,7 @@
 import { type ToastCategory, toast } from "./toast.svelte"
 import { actionCable } from "./use-actioncable.svelte"
+import { inertiaPage } from "@/utils"
+import { get } from "svelte/store"
 
 export type NotificationType = "info" | "success" | "warning" | "error"
 
@@ -34,13 +36,17 @@ class NotificationsStore {
   items = $state<Notification[]>([])
   showToasts = $state(true)
   private subscribed = false
+  private subscriptionParams: Record<string, unknown> = {}
 
   subscribe(): void {
     if (this.subscribed) return
 
+    const userId = this.currentUserId()
+    this.subscriptionParams = userId ? { user_id: userId } : {}
+
     actionCable.subscribe<Notification>(
       "NotificationsChannel",
-      {},
+      this.subscriptionParams,
       {
         received: (notification) => {
           this.items = [notification, ...this.items]
@@ -66,8 +72,16 @@ class NotificationsStore {
 
   unsubscribe(): void {
     if (!this.subscribed) return
-    actionCable.unsubscribe("NotificationsChannel")
+    actionCable.unsubscribe("NotificationsChannel", this.subscriptionParams)
+    this.subscriptionParams = {}
     this.subscribed = false
+  }
+
+  private currentUserId(): string | null {
+    if (!inertiaPage) return null
+    const auth = get(inertiaPage).props.auth as { user?: { id?: string | number } } | undefined
+    const userId = auth?.user?.id
+    return userId ? String(userId) : null
   }
 
   private mapTypeToToast(type: NotificationType): ToastCategory {
