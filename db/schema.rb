@@ -10,7 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_03_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_12_090500) do
+  create_table "reminder_alert_deliveries", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "notified_at", null: false
+    t.datetime "occurrence_at", null: false
+    t.integer "reminder_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["notified_at"], name: "index_reminder_alert_deliveries_on_notified_at"
+    t.index ["reminder_id", "occurrence_at"], name: "idx_on_reminder_id_occurrence_at_385be13440", unique: true
+    t.index ["reminder_id"], name: "index_reminder_alert_deliveries_on_reminder_id"
+  end
+
   create_table "reminders", force: :cascade do |t|
     t.boolean "alert", default: false, null: false
     t.integer "alert_minutes"
@@ -48,5 +59,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_03_120000) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  add_foreign_key "reminder_alert_deliveries", "reminders"
   add_foreign_key "reminders", "users"
 end
