@@ -38,6 +38,7 @@ class Reminder < ApplicationRecord
   default_scope -> { kept }
 
   belongs_to :user
+  has_many :alert_deliveries, class_name: "ReminderAlertDelivery", dependent: :delete_all
 
   attribute :repeat_period, :integer
   enum(:repeat_period, {daily: 0, weekly: 1, monthly: 2, yearly: 3})
