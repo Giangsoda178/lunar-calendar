@@ -20,6 +20,7 @@ admin.last_name = "User"
 admin.password_digest ||= BCrypt::Password.create("Password123!")
 admin.role = "admin"
 admin.two_fa_enabled = false
+admin.email_verified_at ||= Time.current
 admin.save!
 puts "  - Admin user: ", admin.email
 
@@ -29,6 +30,7 @@ leo.last_name = "Nguyen"
 leo.password_digest ||= BCrypt::Password.create("Password123!")
 leo.role = "user"
 leo.two_fa_enabled = false
+leo.email_verified_at ||= Time.current
 leo.save!
 puts "  - User: ", leo.email
 
