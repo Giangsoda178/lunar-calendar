@@ -4,21 +4,24 @@
 #
 # Table name: users
 #
-#  id              :string           not null, primary key
-#  email           :string           not null
-#  first_name      :string           not null
-#  last_name       :string
-#  password_digest :string
-#  role            :string           default("user"), not null
-#  timezone        :string           default("Asia/Ho_Chi_Minh"), not null
-#  two_fa_enabled  :boolean
-#  two_fa_secret   :string
-#  created_at      :datetime         not null
-#  updated_at      :datetime         not null
+#  id                         :string           not null, primary key
+#  email                      :string           not null
+#  email_verification_sent_at :datetime
+#  email_verified_at          :datetime
+#  first_name                 :string           not null
+#  last_name                  :string
+#  password_digest            :string
+#  role                       :string           default("user"), not null
+#  timezone                   :string           default("Asia/Ho_Chi_Minh"), not null
+#  two_fa_enabled             :boolean
+#  two_fa_secret              :string
+#  created_at                 :datetime         not null
+#  updated_at                 :datetime         not null
 #
 # Indexes
 #
-#  index_users_on_email  (email) UNIQUE
+#  index_users_on_email              (email) UNIQUE
+#  index_users_on_email_verified_at  (email_verified_at)
 #
 FactoryBot.define do
   factory :user do
@@ -31,5 +34,11 @@ FactoryBot.define do
     two_fa_secret { nil }
     role { "user" }
     timezone { "Asia/Ho_Chi_Minh" }
+    email_verified_at { Time.current }
+
+    trait :unverified do
+      email_verified_at { nil }
+      email_verification_sent_at { nil }
+    end
   end
 end

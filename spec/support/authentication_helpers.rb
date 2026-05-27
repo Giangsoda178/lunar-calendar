@@ -3,12 +3,11 @@
 module AuthenticationHelpers
   extend ActiveSupport::Concern
 
-  def sign_in_as(user)
-    session = user.sessions.create!
-    cookies.signed.permanent[:session_token] = {value: session.id, httponly: true}
+  def sign_in_as(user, password: "Secret1*3*5*")
+    post sign_in_path, params: {email: user.email, password: password}
   end
 
   def sign_out
-    cookies.delete(:session_token)
+    delete sign_out_path
   end
 end
