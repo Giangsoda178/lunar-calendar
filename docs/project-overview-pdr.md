@@ -255,8 +255,8 @@ Based on the starter kit nature, planned features include:
 - ✅ Deployment configuration
 
 ### Phase 2: Authentication (Next)
-- ⏳ Complete user authentication system
-- ⏳ Email verification
+- ✅ Basic password sign-in/sign-out with persisted sessions
+- ✅ Email verification
 - ⏳ Password reset flows
 - ⏳ Session management UI
 

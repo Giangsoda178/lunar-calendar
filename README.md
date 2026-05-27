@@ -263,8 +263,8 @@ docker run -p 3000:3000 mfl-app
 - ✅ Testing infrastructure (RSpec, Capybara)
 
 ### Planned
-- ⏳ Complete user authentication system
-- ⏳ Email verification and password reset
+- ✅ Basic user authentication and email verification
+- ⏳ Password reset
 - ⏳ Component library integration
 - ⏳ Production deployment guide
 - ⏳ Monitoring and logging setup

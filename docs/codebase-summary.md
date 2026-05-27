@@ -418,9 +418,9 @@ These have separate schema files but are managed independently.
 ✅ Svelte 5 runes system
 ✅ EmailTheme system (OKLCH to HEX color conversion for email templates)
 ✅ Basic authentication session model and sign-in/sign-out flow
+✅ Email verification tokens, resend flow, and account verified emails
 
 ### What's Missing/Incomplete
-⏳ Email verification flows
 ⏳ Password reset functionality
 ⏳ Session management UI
 ⏳ Additional frontend pages beyond kitchen sink demo
