@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_27_132600) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_27_134200) do
   create_table "reminders", force: :cascade do |t|
     t.boolean "alert", default: false, null: false
     t.integer "alert_minutes"
@@ -46,6 +46,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_27_132600) do
   create_table "users", id: :string, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email", null: false
+    t.datetime "email_verification_sent_at"
+    t.datetime "email_verified_at"
     t.string "first_name", null: false
     t.string "last_name"
     t.string "password_digest"
@@ -55,6 +57,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_27_132600) do
     t.string "two_fa_secret"
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["email_verified_at"], name: "index_users_on_email_verified_at"
   end
 
   add_foreign_key "reminders", "users"

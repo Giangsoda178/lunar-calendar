@@ -15,6 +15,7 @@ class SessionsController < InertiaController
     if user
       session = user.sessions.create!
       write_session_cookie(session, remember: form.remember_me)
+      user.send_email_verification_later if user.email_verification_sent_at.blank?
       redirect_to calendar_index_path, notice: "Signed in successfully"
     else
       redirect_to sign_in_path,

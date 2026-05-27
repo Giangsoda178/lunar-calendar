@@ -4,25 +4,32 @@
 #
 # Table name: users
 #
-#  id              :string           not null, primary key
-#  email           :string           not null
-#  first_name      :string           not null
-#  last_name       :string
-#  password_digest :string
-#  role            :string           default("user"), not null
-#  timezone        :string           default("Asia/Ho_Chi_Minh"), not null
-#  two_fa_enabled  :boolean
-#  two_fa_secret   :string
-#  created_at      :datetime         not null
-#  updated_at      :datetime         not null
+#  id                         :string           not null, primary key
+#  email                      :string           not null
+#  email_verification_sent_at :datetime
+#  email_verified_at          :datetime
+#  first_name                 :string           not null
+#  last_name                  :string
+#  password_digest            :string
+#  role                       :string           default("user"), not null
+#  timezone                   :string           default("Asia/Ho_Chi_Minh"), not null
+#  two_fa_enabled             :boolean
+#  two_fa_secret              :string
+#  created_at                 :datetime         not null
+#  updated_at                 :datetime         not null
 #
 # Indexes
 #
-#  index_users_on_email  (email) UNIQUE
+#  index_users_on_email              (email) UNIQUE
+#  index_users_on_email_verified_at  (email_verified_at)
 #
 class User < ApplicationRecord
   has_secure_password
   include IdGenerator
+
+  generates_token_for :email_verification, expires_in: 2.days do
+    [email, email_verified_at&.to_i].join(":")
+  end
 
   has_many :sessions, dependent: :destroy
   has_many :reminders
@@ -48,6 +55,29 @@ class User < ApplicationRecord
 
   def full_name
     [first_name, last_name].compact.join(" ")
+  end
+
+  def name
+    full_name
+  end
+
+  def verified
+    email_verified_at.present?
+  end
+
+  def verified?
+    verified
+  end
+
+  def mark_email_verified!
+    update!(email_verified_at: Time.current)
+  end
+
+  def send_email_verification_later
+    return if verified
+
+    update!(email_verification_sent_at: Time.current)
+    TransactionalMailer.email_verification(self, generate_token_for(:email_verification)).deliver_later
   end
 
   private

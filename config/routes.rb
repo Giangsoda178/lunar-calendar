@@ -6,6 +6,8 @@ Rails.application.routes.draw do
   get "sign_in", to: "sessions#new", as: :sign_in
   post "sign_in", to: "sessions#create"
   delete "sign_out", to: "sessions#destroy", as: :sign_out
+  get "verify_email", to: "email_verifications#show", as: :verify_email
+  post "email_verification", to: "email_verifications#create", as: :email_verification
 
   get "kitchen_sink", to: "kitchen_sink#index"
   scope "kitchen_sink/mobile", as: :kitchen_sink_mobile do
