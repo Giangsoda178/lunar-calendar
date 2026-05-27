@@ -2,6 +2,7 @@
 
 class ApplicationController < ActionController::Base
   before_action :set_current_request_details
+  before_action :resume_session
   before_action :authenticate
 
   private
@@ -22,6 +23,11 @@ class ApplicationController < ActionController::Base
 
   def perform_authentication
     Current.session.present?
+  end
+
+  def resume_session
+    session_token = cookies.signed[:session_token]
+    Current.session = Session.find_by(id: session_token) if session_token.present?
   end
 
   def dev_auto_sign_in

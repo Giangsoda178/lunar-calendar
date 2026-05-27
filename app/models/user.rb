@@ -24,6 +24,7 @@ class User < ApplicationRecord
   has_secure_password
   include IdGenerator
 
+  has_many :sessions, dependent: :destroy
   has_many :reminders
   before_destroy { reminders.discard_all }
 

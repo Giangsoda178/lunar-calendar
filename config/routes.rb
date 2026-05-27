@@ -3,6 +3,10 @@
 Rails.application.routes.draw do
   root "home#index"
 
+  get "sign_in", to: "sessions#new", as: :sign_in
+  post "sign_in", to: "sessions#create"
+  delete "sign_out", to: "sessions#destroy", as: :sign_out
+
   get "kitchen_sink", to: "kitchen_sink#index"
   scope "kitchen_sink/mobile", as: :kitchen_sink_mobile do
     get "", to: "kitchen_sink_mobile#index", as: :index

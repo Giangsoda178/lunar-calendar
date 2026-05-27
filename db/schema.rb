@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_03_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_27_132600) do
   create_table "reminders", force: :cascade do |t|
     t.boolean "alert", default: false, null: false
     t.integer "alert_minutes"
@@ -34,6 +34,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_03_120000) do
     t.check_constraint "end IS NULL OR end >= start", name: "chk_reminders_end_after_start"
   end
 
+  create_table "sessions", id: :string, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "ip_address"
+    t.datetime "updated_at", null: false
+    t.string "user_agent"
+    t.string "user_id", null: false
+    t.index ["user_id"], name: "index_sessions_on_user_id"
+  end
+
   create_table "users", id: :string, force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email", null: false
@@ -49,4 +58,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_03_120000) do
   end
 
   add_foreign_key "reminders", "users"
+  add_foreign_key "sessions", "users"
 end
